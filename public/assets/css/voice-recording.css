@@ -1,0 +1,321 @@
+/* Voice Recording Components CSS */
+
+/* Voice record button styling */
+.voice-record-btn {
+    background: #f8f9fa !important;
+    border: none !important;
+    color: #667eea !important;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3rem; /* Increased from 2.25rem */
+    height: 4rem;
+    border-radius: 0;
+    padding: 12px 20px; /* Increased padding */
+    flex-shrink: 0;
+    /* Make it easier to hold without accidentally leaving */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    /* Add a subtle border to define the clickable area better */
+    border: 1px solid transparent !important;
+}
+
+.voice-record-btn:hover,
+.voice-record-btn:focus {
+    background: #667eea !important;
+    color: white !important;
+    border-color: #667eea !important;
+    outline: none;
+    box-shadow: none;
+    transform: none;
+}
+
+.voice-record-btn:active {
+    background: #5a67d8 !important;
+    border-color: #5a67d8 !important;
+    transform: translateY(1px);
+}
+
+.voice-record-btn i {
+    font-size: 14px;
+    pointer-events: none;
+}
+
+/* Recording state for voice button */
+.voice-record-btn.recording {
+    background: #dc3545 !important;
+    color: white !important;
+    animation: recordingPulse 1.5s ease-in-out infinite;
+    /* Add a visual indicator that it's recording */
+    box-shadow: 0 0 10px rgba(220, 53, 69, 0.5) !important;
+    border: 2px solid #dc3545 !important;
+}
+
+@keyframes recordingPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    50% {
+        opacity: 0.85;
+        transform: scale(1.05);
+        box-shadow: 0 0 0 8px rgba(220, 53, 69, 0);
+    }
+}
+
+/* Voice Recording UI */
+.voice-recording-ui {
+    margin: 0 0 10px 0; /* Only bottom margin, no top margin */
+    padding: 12px 16px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    animation: slideDownFromAbove 0.3s ease;
+}
+
+@keyframes slideDownFromAbove {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.recording-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.recording-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.recording-icon {
+    color: #dc3545;
+    font-size: 20px;
+    animation: pulse 1.5s infinite;
+}
+
+.recording-text {
+    font-weight: 600;
+    color: #856404;
+    font-size: 14px;
+}
+
+.recording-timer {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #dc3545;
+    font-size: 16px;
+    min-width: 45px;
+}
+
+.btn-cancel-recording {
+    background: #dc3545;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-cancel-recording:hover {
+    background: #c82333;
+    transform: scale(1.05);
+}
+
+.btn-cancel-recording:active {
+    transform: scale(0.95);
+}
+
+/* Voice Message Preview (before sending) */
+.voice-preview {
+    margin: 10px 0;
+    padding: 12px;
+    background: #e7f3ff;
+    border: 1px solid #667eea;
+    border-radius: 8px;
+    animation: slideDown 0.3s ease;
+}
+
+.voice-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.voice-info i {
+    font-size: 20px;
+}
+
+.voice-duration {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #667eea;
+    font-size: 14px;
+}
+
+.voice-label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 14px;
+}
+
+.btn-remove-voice {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-remove-voice:hover {
+    background: #ffe6e6;
+    transform: scale(1.1);
+}
+
+.btn-remove-voice:active {
+    transform: scale(0.9);
+}
+
+/* Voice Message Display in Chat (Received/Sent Messages) */
+.voice-message-player {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    max-width: 300px;
+}
+
+.voice-play-btn {
+    background: #667eea;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.voice-play-btn:hover {
+    background: #5a67d8;
+    transform: scale(1.05);
+}
+
+.voice-play-btn:active {
+    transform: scale(0.95);
+}
+
+.voice-play-btn.playing {
+    background: #dc3545;
+}
+
+.voice-play-btn i {
+    font-size: 16px;
+}
+
+.voice-progress-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.voice-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #dee2e6;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.voice-progress-fill {
+    height: 100%;
+    background: #667eea;
+    border-radius: 3px;
+    transition: width 0.1s linear;
+}
+
+.voice-time-info {
+    display: flex;
+    justify-content: flex-start;
+    font-size: 11px;
+    color: #6c757d;
+    font-family: 'Courier New', monospace;
+}
+
+/* Disabled state for text input during recording */
+#messageInput:disabled {
+    background: #e9ecef;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Admin/Customer specific styles */
+.message.sent .voice-message-player {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.message.received .voice-message-player {
+    background: #f8f9fa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .voice-record-btn,
+    .file-upload-btn {
+        min-width: 2rem;
+        padding: 10px 12px;
+    }
+    
+    .voice-message-player {
+        max-width: 100%;
+    }
+    
+    .recording-text {
+        font-size: 13px;
+    }
+    
+    .recording-timer {
+        font-size: 14px;
+    }
+}
+
+/* Animation for microphone permission request */
+.mic-permission-needed {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}

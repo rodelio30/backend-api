@@ -1,0 +1,263 @@
+/* ============================================================================
+   CUSTOMER CHAT IMAGE DISPLAY IMPROVEMENTS
+   ============================================================================ */
+
+/* CSS Variables for consistent theming */
+:root {
+    --primary-color: #667eea;
+    --primary-hover: #5a67d8;
+    --success-color: #28a745;
+    --success-hover: #218838;
+    --info-color: #17a2b8;
+    --info-hover: #138496;
+    --light-bg: #f8f9fa;
+    --border-color: #dee2e6;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+}
+
+/* ============================================================================
+   IMAGE MESSAGE STYLES - SPECIFIC SELECTORS TO AVOID CONFLICTS
+   ============================================================================ */
+
+/* Image message container - more specific selector */
+.message-content .customer-image-container {
+    margin: 8px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.message-content .customer-image-container:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+}
+
+/* Clickable image in chat - more specific selector */
+.message-content .customer-image {
+    width: 100%;
+    height: auto;
+    max-width: 400px;
+    max-height: 300px;
+    object-fit: cover;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.message-content .customer-image:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+/* Image fallback - more specific selector */
+.message-content .customer-image-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: var(--light-bg);
+    border-radius: 12px;
+    border: 2px dashed var(--border-color);
+    color: var(--text-secondary);
+}
+
+/* ============================================================================
+   MODERN IMAGE PREVIEW MODAL STYLES
+   ============================================================================ */
+
+/* Customer image preview modal - specific class to avoid conflicts */
+.customer-image-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.customer-image-preview-modal .customer-modal-dialog {
+    max-width: 90vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.customer-image-preview-modal .customer-modal-header {
+    background: var(--light-bg);
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.customer-image-preview-modal .customer-modal-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 16px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.customer-image-preview-modal .customer-modal-title i {
+    color: var(--primary-color);
+}
+
+.customer-image-preview-modal .customer-close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.customer-image-preview-modal .customer-close-btn:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+.customer-image-preview-modal .customer-modal-body {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 70vh;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.customer-image-preview-modal .customer-modal-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.customer-image-preview-modal .customer-image-info {
+    padding: 12px 20px;
+    background: white;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.customer-image-preview-modal .customer-image-info small {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.customer-image-preview-modal .customer-modal-footer {
+    background: var(--light-bg);
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+}
+
+/* ============================================================================
+   MODERN DOWNLOAD BUTTON STYLING
+   ============================================================================ */
+
+/* Customer download button - specific selector */
+.customer-image-preview-modal .customer-download-btn {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+    color: white !important;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.customer-image-preview-modal .customer-download-btn:hover {
+    background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%);
+    color: white !important;
+    text-decoration: none !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.customer-image-preview-modal .customer-download-btn:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+.customer-image-preview-modal .customer-download-btn i {
+    font-size: 12px;
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .message-content .customer-image {
+        max-width: 280px;
+        max-height: 200px;
+    }
+    
+    .customer-image-preview-modal .customer-modal-dialog {
+        max-width: 95vw;
+        max-height: 95vh;
+        margin: 10px;
+    }
+    
+    .customer-image-preview-modal .customer-modal-image {
+        max-height: 60vh !important;
+    }
+    
+    .customer-image-preview-modal .customer-download-btn {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+    
+    .customer-image-preview-modal .customer-modal-header {
+        padding: 12px 15px;
+    }
+    
+    .customer-image-preview-modal .customer-modal-footer {
+        padding: 12px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .message-content .customer-image {
+        max-width: 240px;
+        max-height: 180px;
+    }
+    
+    .customer-image-preview-modal .customer-modal-dialog {
+        margin: 5px;
+    }
+    
+    .customer-image-preview-modal .customer-download-btn {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+}
