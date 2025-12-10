@@ -13,7 +13,7 @@
             // Default configuration
             this.config = {
                 apiKey: '',
-                baseUrl: 'https://livechat.kopisugar.cc',
+                baseUrl: 'https://api-taapin.danhar.cc/',
                 theme: 'modern',
                 position: 'fixed',
                 zIndex: 999999,

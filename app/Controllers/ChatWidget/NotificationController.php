@@ -1,6 +1,6 @@
 <?php
 // namespace App\Controllers;
-namespace App\Controllers\Clientzone;
+namespace App\Controllers\ChatWidget;
 
 use App\Controllers\BaseResourceController;
 

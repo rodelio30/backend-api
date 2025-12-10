@@ -7,7 +7,6 @@ use App\Models\ApiKeyCWModel;
 use App\Models\ClientWidgetSettingCWModel;
 use Exception;
 
-// class ChatController extends GeneralCW
 class ChatController extends GeneralCW
 {
     protected ApiKeyCWModel $apiKeyCWModel;
@@ -198,7 +197,6 @@ class ChatController extends GeneralCW
         // API key for iframe integrations (can come from POST or session)
         $apiKey = $this->sanitizeInput($this->request->getPost('api_key')) ?: 
                   $this->sanitizeInput($this->request->getGet('api_key'));
-
         
         // Validate API key and get client_id if provided
         $clientId = null;
@@ -1062,8 +1060,6 @@ class ChatController extends GeneralCW
             'message_type' => $messageType
         ];
 
-        console.log(result);
-
         $messageId = $this->messageCWModel->insert($messageData);
 
         if ($messageId) {
@@ -1249,7 +1245,8 @@ class ChatController extends GeneralCW
         try {
             // Backend API endpoint URL
             // $backendUrl = 'https://kiosk-chat.kopisugar.cc/api/client/get-id-by-email';
-            $backendUrl = 'https://api-taapin.danhar.cc/api/client/get-id-by-email';
+            // $backendUrl = 'https://api-taapin.danhar.cc/api/client/get-id-by-email';
+            $backendUrl = 'http://localhost:8080/api/client/get-id-by-email';
             
             $postData = [
                 'email' => $clientEmail

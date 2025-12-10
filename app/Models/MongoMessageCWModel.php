@@ -222,8 +222,8 @@ class MongoMessageCWModel
     {
         try {
             // Get session info to determine client username using session_id string
-            $chatModel = new \App\Models\ChatModel();
-            $session = $chatModel->getSessionBySessionId($sessionId);
+            $chatCWModel = new \App\Models\ChatCWModel();
+            $session = $chatCWModel->getSessionBySessionId($sessionId);
             
             if (!$session) {
                 return [];
@@ -299,10 +299,10 @@ class MongoMessageCWModel
     {
         try {
             // First, get all sessions for this user from MySQL
-            $chatModel = new \App\Models\ChatModel();
+            $chatCWModel = new \App\Models\ChatCWModel();
             $timeThreshold = date('Y-m-d H:i:s', strtotime("-{$daysBack} days"));
             
-            $sessionQuery = $chatModel->where('user_role', 'loggedUser')
+            $sessionQuery = $chatCWModel->where('user_role', 'loggedUser')
                                    ->where('created_at >=', $timeThreshold);
             
             // Build user matching conditions
@@ -395,8 +395,8 @@ class MongoMessageCWModel
     {
         try {
             // Get session info to determine client username using session_id string
-            $chatModel = new \App\Models\ChatModel();
-            $session = $chatModel->getSessionBySessionId($sessionId);
+            $chatCWModel = new \App\Models\ChatCWModel();
+            $session = $chatCWModel->getSessionBySessionId($sessionId);
             
             if (!$session) {
                 return false;
@@ -436,15 +436,15 @@ class MongoMessageCWModel
     {
         // Try to get client username from session
         if (isset($data['session_id'])) {
-            $chatModel = new \App\Models\ChatModel();
+            $chatCWModel = new \App\Models\ChatCWModel();
             
             // Determine if session_id is string or integer
             if (is_numeric($data['session_id']) && intval($data['session_id']) == $data['session_id']) {
                 // It's a numeric ID, use find()
-                $session = $chatModel->find($data['session_id']);
+                $session = $chatCWModel->find($data['session_id']);
             } else {
                 // It's a session_id string, use getSessionBySessionId()
-                $session = $chatModel->getSessionBySessionId($data['session_id']);
+                $session = $chatCWModel->getSessionBySessionId($data['session_id']);
             }
             
             if ($session) {

@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use Exception;
 
-class GeneralCW extends BaseController
+class GeneralCW extends BaseController 
 {
     /**
      * Generate unique session ID
@@ -44,7 +44,7 @@ class GeneralCW extends BaseController
     public function getCurrentUser()
     {
         if ($this->isAuthenticated()) {
-            return $this->userModel->find($this->session->get('user_id'));
+            return $this->userCWModel->find($this->session->get('user_id'));
         }
         return null;
     }

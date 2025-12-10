@@ -828,7 +828,8 @@ function createVoiceMessagePlayer(fileData, messageId) {
     } else if (fileData.file_path) {
         // Use the centralized file URL from FileCompressionService
         // The file_path is relative, so we need to construct the full URL
-        audioUrl = 'https://files.kopisugar.cc/livechat/default/chat/' + fileData.file_path;
+        // audioUrl = 'https://files.kopisugar.cc/livechat/default/chat/' + fileData.file_path;
+        audioUrl = 'https://files.danhar.cc/livechat/default/chat/' + fileData.file_path;
     } else {
         // Fallback to download endpoint
         const currentBaseUrl = typeof baseUrl !== 'undefined' ? baseUrl : (typeof window.location !== 'undefined' ? window.location.origin + '/' : '/');

@@ -912,7 +912,8 @@ function startNewChatForLoggedUser(userRoleParam, externalUsernameParam, externa
 
 // Initialize WebSocket connection
 let wsUrls = [
-    'wss://ws.kopisugar.cc:39147'
+    // 'wss://ws.kopisugar.cc:39147'
+    'wss://api-taapin.danhar.cc:8443'
 ];
 let currentUrlIndex = 0;
 
@@ -1183,7 +1184,7 @@ document.addEventListener('submit', async function(e) {
                     
                     // Store customer name for immediate message display
                     const formData = new FormData(e.target);
-                    const customerName = formData.get('customer_name') || formData.get('external_fullname') || formData.get('external_username') || 'Anonymous';
+                    const customerName = formData.get('customer_name') || formData.get('external_fullname') || formData.get('external_username') || 'anonymous';
                     window.currentCustomerName = customerName;
                     
                     const chatInterface = document.getElementById('chatInterface');
@@ -2303,7 +2304,7 @@ function createFallbackVoicePlayer(fileData, messageId) {
     if (fileData.file_url) {
         audioUrl = fileData.file_url;
     } else if (fileData.file_path) {
-        audioUrl = 'https://files.kopisugar.cc/livechat/default/chat/' + fileData.file_path;
+        audioUrl = 'https://api-taapin.danhar.cc/livechat/default/chat/' + fileData.file_path;
     } else {
         const currentBaseUrl = typeof baseUrl !== 'undefined' ? baseUrl : (typeof window.location !== 'undefined' ? window.location.origin + '/' : '/');
         audioUrl = currentBaseUrl + 'chat/download-file/' + messageId;

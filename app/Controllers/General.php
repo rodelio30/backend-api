@@ -5,7 +5,10 @@ namespace App\Controllers;
 use CodeIgniter\HTTP\RedirectResponse;
 use Exception;
 
-class General extends BaseResourceController
+// use Exception;
+
+class General extends BaseController
+// class General extends BaseResourceController
 {
     /**
      * Generate unique session ID
@@ -205,6 +208,8 @@ class General extends BaseResourceController
             return rtrim($appConfig->widgetFrontendUrl, '/');
         }
 
-        return 'https://livechat.kopisugar.cc';
+        // return 'https://livechat.kopisugar.cc';
+        // return 'https://api-taapin.danhar.cc';
+        return 'http://localhost:8080/';
     }
 }

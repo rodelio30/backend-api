@@ -17,11 +17,14 @@ $routes->group('api/v1/clientzone', ['filter' => 'clientAuth'], function($routes
     $routes->get('dashboard', 'Clientzone\ClientController::dashboard');
 });
 
+$routes->get('test-mongo', 'TestMongoController::index');
+
 
 // Chat routes (Customer side)
 $routes->get('/chat', 'ChatWidget\ChatController::index');
 $routes->post('/chat/start-session', 'ChatWidget\ChatController::startSession');
 $routes->post('/chat/assign-agent', 'ChatWidget\ChatController::assignAgent');
+
 $routes->get('/chat/messages/(:segment)', 'ChatWidget\ChatController::getMessages/$1');
 $routes->get('/chat/messages-with-history/(:segment)', 'ChatWidget\ChatController::getMessagesWithHistory/$1');
 $routes->get('/chat/chat-history', 'ChatWidget\ChatController::getChatHistory');

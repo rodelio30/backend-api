@@ -10,7 +10,7 @@ class MessageCWModel extends Model
     protected $primaryKey = 'id';
     protected $allowedFields = ['session_id', 'sender_type', 'sender_id', 'message', 'message_type', 'is_read'];
     
-    private $mongoMessageModel;
+    private $mongoMessageCWModel;
     
     public function __construct()
     {
@@ -23,10 +23,10 @@ class MessageCWModel extends Model
      */
     private function getMongoModel()
     {
-        if (!$this->mongoMessageModel) {
-            $this->mongoMessageModel = new \App\Models\MongoMessageModel();
+        if (!$this->mongoMessageCWModel) {
+            $this->mongoMessageCWModel = new \App\Models\MongoMessageCWModel();
         }
-        return $this->mongoMessageModel;
+        return $this->mongoMessageCWModel;
     }
     
     public function getSessionMessages($sessionId)
@@ -35,8 +35,8 @@ class MessageCWModel extends Model
         $messages = $this->getMongoModel()->getSessionMessages($sessionId);
         
         // Add additional user information if needed
-        $userModel = new \App\Models\UserModel();
-        $chatModel = new \App\Models\ChatModel();
+        $userModel = new \App\Models\UserCWModel();
+        $chatModel = new \App\Models\ChatCWModel();
         
         foreach ($messages as &$message) {
             // Add agent name for agent messages

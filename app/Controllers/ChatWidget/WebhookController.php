@@ -1,5 +1,5 @@
 <?php
-namespace App\Controllers;
+// namespace App\Controllers;
 namespace App\Controllers\ChatWidget;
 
 use App\Controllers\BaseResourceController;

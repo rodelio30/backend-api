@@ -39,6 +39,7 @@ class Cors extends BaseConfig
             'https://clientzone.taapin.com',
             'https://api-taapin.danhar.cc',
             'http://localhost',
+            'http://localhost:8080',
         ],
 
         /**

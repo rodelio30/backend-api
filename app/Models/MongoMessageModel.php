@@ -327,11 +327,11 @@ class MongoMessageModel
                 if (isset($message['file_data']) && is_array($message['file_data'])) {
                     // Use external file server URLs since files are stored in centralized storage
                     if (isset($message['file_data']['file_path'])) {
-                        $message['file_data']['file_url'] = 'https://files.kopisugar.cc/livechat/default/chat/' . $message['file_data']['file_path'];
+                        $message['file_data']['file_url'] = 'https://api-taapin.danhar.cc/livechat/default/chat/' . $message['file_data']['file_path'];
                     }
                     
                     if (isset($message['file_data']['thumbnail_path'])) {
-                        $message['file_data']['thumbnail_url'] = 'https://files.kopisugar.cc/livechat/default/thumbs/' . $message['file_data']['thumbnail_path'];
+                        $message['file_data']['thumbnail_url'] = 'https://api-taapin.danhar.cc/livechat/default/thumbs/' . $message['file_data']['thumbnail_path'];
                     }
                 }
                 
@@ -416,11 +416,11 @@ class MongoMessageModel
                 if (isset($message['file_data']) && is_array($message['file_data'])) {
                     // Use external file server URLs since files are stored in centralized storage
                     if (isset($message['file_data']['file_path'])) {
-                        $message['file_data']['file_url'] = 'https://files.kopisugar.cc/livechat/default/chat/' . $message['file_data']['file_path'];
+                        $message['file_data']['file_url'] = 'https://api-taapin.danhar.cc/livechat/default/chat/' . $message['file_data']['file_path'];
                     }
                     
                     if (isset($message['file_data']['thumbnail_path'])) {
-                        $message['file_data']['thumbnail_url'] = 'https://files.kopisugar.cc/livechat/default/thumbs/' . $message['file_data']['thumbnail_path'];
+                        $message['file_data']['thumbnail_url'] = 'https://api-taapin.danhar.cc/livechat/default/thumbs/' . $message['file_data']['thumbnail_path'];
                     }
                 }
                 

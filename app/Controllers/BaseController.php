@@ -8,6 +8,7 @@ use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use App\Models\ClientModel; // Include the model namespace
 
 /**
  * Class BaseController
@@ -37,7 +38,16 @@ abstract class BaseController extends Controller
      */
     protected $helpers = [];
 
-    protected $clientModel;
+    // protected $clientModel;
+
+    protected $chatCWModel;
+    protected $userCWModel;
+    protected $messageCWModel;
+    protected $keywordResponseCWModel;
+
+    protected $chatFileModel;
+    protected $userRoleModel;
+
 
     /**
      * Be sure to declare properties for any property fetch you initialized.
@@ -56,7 +66,18 @@ abstract class BaseController extends Controller
         $this->session = service('session');
 
         // Preload any models, libraries, etc, here.
-        $this->clientModel = new \App\Models\ClientModel();
+        // $this->clientModel = new \App\Models\ClientModel();
+        
+        // Initialize models (for Chat Widget Controllers)
+        $this->chatCWModel = new \App\Models\ChatCWModel();
+        $this->userCWModel = new \App\Models\UserCWModel();
+        $this->messageCWModel = new \App\Models\MessageCWModel();
+        $this->keywordResponseCWModel = new \App\Models\KeywordResponseCWModel();
+
+        // This 2 file are the file in FN and BO projects
+        $this->chatFileModel = new \App\Models\ChatFileModel();
+        $this->userRoleModel = new \App\Models\UserRoleModel();
+
 
         // E.g.: $this->session = service('session');
     }

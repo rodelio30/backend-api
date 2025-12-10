@@ -15,14 +15,6 @@ abstract class BaseResourceController extends ResourceController
      */
     protected $clientModel;
 
-    protected $chatCWModel;
-    protected $userCWModel;
-    protected $messageCWModel;
-    protected $keywordResponseCWModel;
-
-    protected $chatFileModel;
-    protected $userRoleModel;
-
     /**
      * @var \CodeIgniter\Session\Session
      */
@@ -37,21 +29,26 @@ abstract class BaseResourceController extends ResourceController
     {
         // Call the parent (ResourceController) initialization first
         parent::initController($request, $response, $logger);
+
+        // Initialize session
+        $this->session = \Config\Services::session();
         
         // Initialize the model here
         $this->clientModel = new ClientModel();
 
-        // Initialize models (for Chat Widget Controllers)
-        $this->chatCWModel = new \App\Models\ChatCWModel();
-        $this->userCWModel = new \App\Models\UserCWModel();
-        $this->messageCWModel = new \App\Models\MessageCWModel();
-        $this->keywordResponseCWModel = new \App\Models\KeywordResponseCWModel();
-
-        // This 2 file are the file in FN and BO projects
-        $this->chatFileModel = new \App\Models\ChatFileModel();
-        $this->userRoleModel = new \App\Models\UserRoleModel();
-
         // NEW: Initialize the Session Service here
-        $this->session = service('session');
+        // $this->session = service('session');
+    }
+
+    /**
+     * Send JSON response
+     */
+    public function jsonResponse($data, $status = 200)
+    {
+        return $this->response->setJSON($data)->setStatusCode($status);
+    }
+    protected function generateSessionId()
+    {
+        return bin2hex(random_bytes(32));
     }
 }

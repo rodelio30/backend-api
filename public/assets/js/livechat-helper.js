@@ -12,7 +12,7 @@
         // Configuration
         config: {
             apiKey: '',
-            baseUrl: 'https://livechat.kopisugar.cc',
+            baseUrl: 'https://api-taapin.danhar.cc/',
             mode: 'popup', // 'popup' | 'embed' | 'widget'
             embedConfig: {
                 theme: 'modern',

@@ -26,10 +26,16 @@ class Database extends Config
      */
     public array $default = [
         'DSN'          => '',
+        // 'hostname'     => '185.135.72.72',
+        // 'username'     => 'livechat_test',
+        // 'password'     => 'aXzz75r4GhKWRrKX',
+        // 'database'     => 'livechat_test',
+
         'hostname'     => '185.135.72.72',
         'username'     => 'livechat_test',
         'password'     => 'aXzz75r4GhKWRrKX',
         'database'     => 'livechat_test',
+
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,
@@ -169,11 +175,19 @@ class Database extends Config
     // $dbName = 'livechat_messages';
     // $authSource = 'admin';
     public array $mongodb = [
-        'hostname' => '10.10.197.3',
-        'port'     => 27017,
-        'username' => 'livechat_messages',
-        'password' => 'Y845akkHeYzFC8y5',
-        'database' => 'livechat_messages',
+        // 'hostname' => '10.10.197.3',
+        // 'hostname' => '103.205.208.104',
+        // 'port'     => 27017,
+        // 'username' => 'root',
+        // // 'password' => 'Y845akkHeYzFC8y5',
+        // 'password' => 'XASvWsPkDxnDKpBD',
+        // 'database' => 'livechat_messages',
+
+        'hostname'   => '103.205.208.104',
+        'port'       => 27017,
+        'username'   => 'root',
+        'password'   => 'XASvWsPkDxnDKpBD',
+        'database'   => 'livechat_messages',
         'options'  => [
             'connectTimeoutMS' => 5000,
             'socketTimeoutMS'  => 10000
