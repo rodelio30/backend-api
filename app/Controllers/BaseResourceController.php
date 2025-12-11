@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Services\LocaleService;
 use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -19,6 +20,11 @@ abstract class BaseResourceController extends ResourceController
      * @var \CodeIgniter\Session\Session
      */
     protected $session;
+
+    /**
+     * @var LocaleService
+     */
+    protected $localeService;
     
     /**
      * Initializer for the ResourceController.
@@ -36,8 +42,9 @@ abstract class BaseResourceController extends ResourceController
         // Initialize the model here
         $this->clientModel = new ClientModel();
 
-        // NEW: Initialize the Session Service here
-        // $this->session = service('session');
+        // E.g.: $this->session = service('session');
+        $this->localeService = new LocaleService();
+        $this->locale = $this->localeService->applyLocale($this->request, $this->session);
     }
 
     /**

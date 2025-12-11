@@ -11,10 +11,16 @@ $routes->get('/', 'Home::index');
 //     $routes->post('login', 'Clientzone\AuthV2::login');
 // });
 
-$routes->post('api/v1/clientzone/login', 'Clientzone\AuthV2::login');
+// $routes->post('api/v1/clientzone/login', 'Clientzone\AuthV2::login');
+// $routes->post('api/v1/clientzone/register', 'Clientzone\AuthV2::attempRegister');
 
 $routes->group('api/v1/clientzone', ['filter' => 'clientAuth'], function($routes) {
     $routes->get('dashboard', 'Clientzone\ClientController::dashboard');
+});
+
+$routes->group('api/v1/clientzone', function($routes) {
+    $routes->post('login', 'Clientzone\AuthV2::login');
+    $routes->post('register', 'Clientzone\AuthV2::register');
 });
 
 $routes->get('test-mongo', 'TestMongoController::index');

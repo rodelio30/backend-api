@@ -77,8 +77,17 @@ abstract class BaseController extends Controller
         // This 2 file are the file in FN and BO projects
         $this->chatFileModel = new \App\Models\ChatFileModel();
         $this->userRoleModel = new \App\Models\UserRoleModel();
+    }
 
-
-        // E.g.: $this->session = service('session');
+    /**
+     * Send JSON response
+     */
+    public function jsonResponse($data, $status = 200)
+    {
+        return $this->response->setJSON($data)->setStatusCode($status);
+    }
+    protected function generateSessionId()
+    {
+        return bin2hex(random_bytes(32));
     }
 }
