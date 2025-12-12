@@ -21,7 +21,11 @@ $routes->group('api/v1/clientzone', ['filter' => 'clientAuth'], function($routes
 $routes->group('api/v1/clientzone', function($routes) {
     $routes->post('login', 'Clientzone\AuthV2::login');
     $routes->post('register', 'Clientzone\AuthV2::register');
+
+    // API endpoint for mobile/Postman login using Google ID Token
+    $routes->POST('google-signin', 'Clientzone\GoogleAuthController::googleSignIn');
 });
+
 
 $routes->get('test-mongo', 'TestMongoController::index');
 

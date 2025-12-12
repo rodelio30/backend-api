@@ -31,10 +31,15 @@ class Database extends Config
         // 'password'     => 'aXzz75r4GhKWRrKX',
         // 'database'     => 'livechat_test',
 
-        'hostname'     => '185.135.72.72',
-        'username'     => 'livechat_test',
-        'password'     => 'aXzz75r4GhKWRrKX',
-        'database'     => 'livechat_test',
+        // 'hostname'     => '185.135.72.72',
+        // 'username'     => 'livechat_test',
+        // 'password'     => 'aXzz75r4GhKWRrKX',
+        // 'database'     => 'livechat_test',
+
+        'hostname'     => 'localhost',
+        'username'     => 'root',
+        'password'     => '',
+        'database'     => 'livechat',
 
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',

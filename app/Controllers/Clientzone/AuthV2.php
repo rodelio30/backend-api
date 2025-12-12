@@ -192,8 +192,6 @@ class AuthV2 extends BaseResourceController // <--- EXTEND BaseResourceControlle
                 // 🔹 GENERATE TOKEN
                 $token = generateJWT($payload);
 
-                $this->localeService->rememberUserPreferredLocale($this->session, $defaultLocale);
-                
                 return $this->respond([
                     'status' => 'success',
                     'message' => 'Account created successfully! Welcome to your dashboard.',
