@@ -25,6 +25,7 @@ abstract class BaseResourceController extends ResourceController
      * @var LocaleService
      */
     protected $localeService;
+    protected $locale;
     
     /**
      * Initializer for the ResourceController.

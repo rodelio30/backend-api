@@ -17,6 +17,7 @@ class ClientModel extends Model
         'api_password',
         'status',
         'preferred_locale',
+        'oauth_provider',
         'created_at',
         'updated_at'
     ];
