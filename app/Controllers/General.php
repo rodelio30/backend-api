@@ -5,10 +5,8 @@ namespace App\Controllers;
 use CodeIgniter\HTTP\RedirectResponse;
 use Exception;
 
-// use Exception;
-
-class General extends BaseController
 // class General extends BaseResourceController
+class General extends BaseController
 {
     /**
      * Generate unique session ID
@@ -35,28 +33,29 @@ class General extends BaseController
     }
     
     /**
-     * Check if user is authenticated as admin
+     * Check if user token exists (admin)
      */
     public function isAuthenticated(): bool
     {
-        return $this->session->has('user_id');
+        return isset($this->request->userData->user_id);
     }
-    
+
     /**
-     * Check if user is authenticated as client/agent
+     * Check if user is client/agent (token-based)
      */
     public function isClientAuthenticated(): bool
     {
-        return $this->session->has('client_user_id') || $this->session->has('agent_user_id');
+        return isset($this->request->userData->client_user_id) ||
+               isset($this->request->userData->agent_user_id);
     }
-    
+
     /**
-     * Get current admin user
+     * Get current admin user from token
      */
     public function getCurrentUser()
     {
         if ($this->isAuthenticated()) {
-            return $this->userModel->find($this->session->get('user_id'));
+            return $this->userModel->find($this->request->userData->user_id);
         }
         return null;
     }
@@ -210,6 +209,7 @@ class General extends BaseController
 
         // return 'https://livechat.kopisugar.cc';
         // return 'https://api-taapin.danhar.cc';
-        return 'http://localhost:8080/';
+        // return 'http://localhost:8080/';
+        return 'https://clientzone.taapin.com';
     }
 }

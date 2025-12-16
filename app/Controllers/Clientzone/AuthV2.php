@@ -13,7 +13,6 @@ class AuthV2 extends BaseResourceController // <--- EXTEND BaseResourceControlle
         helper('jwt');
     }
 
-
     public function login()
     {
         $data = $this->request->getJSON(true);

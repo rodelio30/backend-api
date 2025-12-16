@@ -242,4 +242,11 @@ class Database extends Config
             $this->defaultGroup = 'tests';
         }
     }
+    /**
+     * Get MongoDB connection configuration
+     */
+    public function getMongoDB(): array
+    {
+        return $this->mongodb;
+    }
 }

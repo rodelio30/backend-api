@@ -18,14 +18,42 @@ $routes->group('api/v1/clientzone', ['filter' => 'clientAuth'], function($routes
     $routes->get('dashboard', 'Clientzone\ClientController::dashboard');
 });
 
+$routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($routes) {
+    // $routes->get('widget/chat-widget', 'Clientzone\WidgetSettingsController::chatWidget');
+    $routes->get('chat',           'Clientzone\WidgetSettingsController::getWidgetSettings');
+    $routes->get('customization',  'Clientzone\WidgetSettingsController::customization');
+    $routes->get('chat-page',      'Clientzone\WidgetSettingsController::chatPage');
+    // $routes->get('language',       'Clientzone\WidgetSettingsController::language');
+    // $routes->get('availability',   'Clientzone\WidgetSettingsController::availability');
+    // $routes->get('welcome-screen', 'Clientzone\WidgetSettingsController::welcomeScreen');
+
+    $routes->get('fetch', 'Clientzone\WidgetSettingsController::fetchSettings');
+    $routes->post('update', 'Clientzone\WidgetSettingsController::updateSettings');
+});
+
+
 $routes->group('api/v1/clientzone', function($routes) {
     $routes->post('login', 'Clientzone\AuthV2::login');
     $routes->post('register', 'Clientzone\AuthV2::register');
 
-    // API endpoint for mobile/Postman login using Google ID Token
+    // API endpoint for login using Google ID Token
     $routes->POST('google-signin', 'Clientzone\GoogleAuthController::googleSignIn');
-});
 
+
+    $routes->group('ws/widget', function($routes) {
+        // $routes->post('chat/send-message', 'ChatController::sendMessage');
+        // $routes->get('chat/check-status/(:segment)', 'ChatController::checkStatus/$1');
+        
+        // Client lookup API (for frontend integration)
+        // $routes->post('client/get-id-by-email', 'ClientController::getClientIdByEmail');
+        
+        // Widget API validation routes (no auth filter - public API)
+        // $routes->post('widget/validate', 'WidgetAuthController::validateWidget');
+        // $routes->post('widget/validate-session', 'WidgetAuthController::validateChatStart');
+        // $routes->post('widget/log-message', 'WidgetAuthController::logMessageSent');
+        $routes->get('config', 'Clientzone\WidgetSettingsController::publicConfig');
+    });
+});
 
 $routes->get('test-mongo', 'TestMongoController::index');
 
