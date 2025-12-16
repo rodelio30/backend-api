@@ -2,13 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Services\LocaleService;
 use CodeIgniter\Controller;
 use CodeIgniter\HTTP\CLIRequest;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
-use App\Models\ClientModel; // Include the model namespace
+use CodeIgniter\RESTful\ResourceController;
 
 /**
  * Class BaseController
@@ -20,8 +21,9 @@ use App\Models\ClientModel; // Include the model namespace
  *
  * For security be sure to declare any new methods as protected or private.
  */
-abstract class BaseController extends Controller
+abstract class BaseController extends ResourceController
 {
+    protected $format = 'json';
     /**
      * Instance of the main Request object.
      *
@@ -36,7 +38,8 @@ abstract class BaseController extends Controller
      *
      * @var list<string>
      */
-    protected $helpers = [];
+    // protected $helpers = [];
+    protected $helpers = ['url', 'form', 'domain', 'i18n'];
 
     // protected $clientModel;
 
@@ -48,6 +51,32 @@ abstract class BaseController extends Controller
     protected $chatFileModel;
     protected $userRoleModel;
 
+    // Models came from BO livechat
+    protected $chatModel;
+    protected $userModel;
+    protected $messageModel;
+    protected $clientModel;
+    protected $agentModel;
+    protected $apiKeyModel;
+
+    protected $cannedResponseModel;
+    // protected $chatFileModel; // commented because already declared above
+    protected $chatAnalyticsModel;
+    protected $customerModel;
+    protected $keywordResponseModel;
+    // protected $userRoleModel; // commented because already declared above
+    protected $clientApiConfigModel;
+    protected $clientWidgetSettingModel;
+    protected $clientPaymentModel;
+    protected $addonModel;
+    protected $addonTranslationModel;
+    protected $clientAddonModel;
+    // Models came from BO livechat
+
+    /**
+     * @var LocaleService
+     */
+    protected $localeService;
 
     /**
      * Be sure to declare properties for any property fetch you initialized.
@@ -77,6 +106,27 @@ abstract class BaseController extends Controller
         // This 2 file are the file in FN and BO projects
         $this->chatFileModel = new \App\Models\ChatFileModel();
         $this->userRoleModel = new \App\Models\UserRoleModel();
+
+        // Initialize models (from BO livechat)
+        $this->chatModel = new \App\Models\ChatModel();
+        $this->userModel = new \App\Models\UserModel();
+        $this->messageModel = new \App\Models\MessageModel();
+        $this->clientModel = new \App\Models\ClientModel();
+        $this->agentModel = new \App\Models\AgentModel();
+        $this->apiKeyModel = new \App\Models\ApiKeyModel();
+        // $this->chatFileModel = new \App\Models\ChatFileModel(); // commented because already declared above
+        $this->cannedResponseModel = new \App\Models\CannedResponseModel();
+        $this->keywordResponseModel = new \App\Models\KeywordResponseModel();
+        // $this->userRoleModel = new \App\Models\UserRoleModel(); // commented because already declared above
+        $this->clientApiConfigModel = new \App\Models\ClientApiConfigModel();
+        $this->clientWidgetSettingModel = new \App\Models\ClientWidgetSettingModel();
+        $this->clientPaymentModel = new \App\Models\PaymentModel();
+        $this->addonModel = new \App\Models\AddonModel();
+        $this->addonTranslationModel = new \App\Models\AddonTranslationModel();
+        $this->clientAddonModel = new \App\Models\ClientAddonModel();
+
+        $this->localeService = new LocaleService();
+        $this->locale = $this->localeService->applyLocale($this->request, $this->session);
     }
 
     /**

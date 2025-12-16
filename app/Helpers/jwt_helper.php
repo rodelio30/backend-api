@@ -24,3 +24,14 @@ function decodeJWT($token)
 
     return JWT::decode($token, new Key($key, 'HS256'));
 }
+
+function decodeJWTV2(string $token): object
+{
+    $key = getenv('JWT_SECRET');
+
+    if (!$key) {
+        throw new Exception('JWT_SECRET is missing from environment variables');
+    }
+
+    return JWT::decode($token, new Key($key, 'HS256'));
+}
