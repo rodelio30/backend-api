@@ -803,4 +803,33 @@ class MongoMessageModel
             return null;
         }
     }
+
+    public function countCustomerMessagesToday(string $clientUsername): int
+    {
+        try {
+            $collectionName = strtolower($clientUsername) . '_messages';
+            $collection = $this->database->selectCollection($collectionName);
+
+            $todayStart = new \MongoDB\BSON\UTCDateTime(
+                strtotime(date('Y-m-d 00:00:00')) * 1000
+            );
+
+            $count = $collection->countDocuments([
+                'sender_type' => 'customer',
+                'created_at'  => [
+                    '$gte' => $todayStart
+                ]
+            ]);
+
+            return (int) $count;
+
+        } catch (\MongoDB\Driver\Exception\Exception $e) {
+            log_message(
+                'error',
+                'MongoDB countCustomerMessagesToday failed: ' . $e->getMessage()
+            );
+            return 0;
+        }
+    }
+
 }
