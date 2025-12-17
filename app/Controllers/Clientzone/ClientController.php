@@ -3,79 +3,90 @@
 namespace App\Controllers\Clientzone;
 
 use App\Controllers\General;
-use App\Controllers\BaseResourceController;
+use CodeIgniter\HTTP\ResponseInterface;
 
-// class ClientController extends BaseController
 class ClientController extends General
 {
-    public function dashboard()
-    {
-        // if (!$this->isClientAuthenticated()) {
-        //     return redirect()->to(getDomainSpecificUrl('login', 'client'));
-        // }
-        
-        // $clientId = service('request')->clientId;
-        // $currentUser = $this->getCurrentClientUser();
+    protected $format = 'json';
 
+    public function __construct()
+    {
+        helper('jwt');
+    }
+
+    public function dashboard(): ResponseInterface
+    {
+        $tokenObject = $this->request->clientToken ?? null;
+
+        if (!$tokenObject) {
+            return $this->response->setStatusCode(401)->setJSON([
+                'status'  => 'error',
+                'message' => 'Token data missing (filter did not pass data)'
+            ]);
+        }
+
+        $payload = (array) $tokenObject->data;
+
+        $clientId   = $payload['id'] ?? null;
+        $clientName = $payload['username'] ?? null;
         $currentUser = $this->getCurrentClientUser();
-        $clientId = $this->getClientId();
-        
-        
-        // Get client's API keys
-        $apiKeys = $this->apiKeyModel->where('client_id', $clientId)->findAll();
-        
-        // Get chat sessions data for this client
-        $sessions = $this->chatModel->where('client_id', $clientId)->findAll();
-        
-        // Count sessions by status
-        $totalSessions = count($sessions);
-        $activeSessions = 0;
-        $waitingSessions = 0;
-        $closedSessions = 0;
-        
-        foreach ($sessions as $session) {
-            switch ($session['status']) {
-                case 'active':
-                    $activeSessions++;
-                    break;
-                case 'waiting':
-                    $waitingSessions++;
-                    break;
-                case 'closed':
-                    $closedSessions++;
-                    break;
-            }
+
+        if (!$clientId) {
+            return $this->response->setStatusCode(401)->setJSON([
+                'status'  => 'error',
+                'message' => 'Invalid token payload'
+            ]);
         }
-        
-        // Get agents count (only for clients, not agents)
-        $agentsCount = 0;
-        $hasAgents = false;
-        if ($this->isClientUser()) {
-            $agentsCount = $this->agentModel->where('client_id', $clientId)->countAllResults();
-            $hasAgents = $agentsCount > 0;
-        }
-        
-        $data = [
-            'title' => $this->isClientUser()
-                ? trans('Client.dashboard.title_client', 'Client Dashboard')
-                : trans('Client.dashboard.title_agent', 'Agent Dashboard'),
-            'user' => $currentUser,
-            'totalApiKeys' => count($apiKeys),
-            'activeApiKeys' => count(array_filter($apiKeys, fn($key) => $key['status'] === 'active')),
-            'totalSessions' => $totalSessions,
-            'activeSessions' => $activeSessions,
-            'waitingSessions' => $waitingSessions,
-            'closedSessions' => $closedSessions,
-            'agentsCount' => $agentsCount,
-            'api_keys' => $apiKeys,
-            'hasAgents' => $hasAgents,
-            'showAgentModal' => $this->isClientUser() && !$hasAgents
-        ];
-        
+
+        /**
+         * ================================
+         * DASHBOARD METRICS
+         * ================================
+         */
+
+        // 🔹 Agents
+        $totalAgents = $this->agentModel
+            ->where('client_id', $clientId)
+            ->countAllResults();
+
+        $loggedInAgents = $this->chatModel
+            ->getLoggedInAgentsToday($clientId);
+
+        // 🔹 Customers
+        $totalCustomers = $this->chatModel
+            ->getTotalUniqueCustomers($clientId);
+
+        $onlineCustomersToday = $this->chatModel
+            ->getTodayOnlineCustomersFromMongo($clientName);
+
+
+        // 🔹 Chats
+        $chatStats = $this->chatModel
+            ->getDashboardChatStatsByClient($clientId);
+
+        /**
+         * ================================
+         * RESPONSE
+         * ================================
+         */
         return $this->response->setJSON([
             'status' => 'success',
-            'data'   => $data
+            'data'   => [
+                'agents' => [
+                    'total'            => $totalAgents,
+                    'logged_in_today'  => $loggedInAgents
+                ],
+                'customers' => [
+                    'total'        => $totalCustomers,
+                    'online_today' => $onlineCustomersToday
+                ],
+                'chats' => [
+                    'ongoing'        => $chatStats['ongoing'],
+                    'today_new'      => $chatStats['today_new'],
+                    'today_queued'   => $chatStats['today_queued'],
+                    'last_7_days'    => $chatStats['last_7_days']
+                ]
+                ],
         ]);
-
     }
 }

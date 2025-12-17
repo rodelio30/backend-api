@@ -14,10 +14,6 @@ $routes->get('/', 'Home::index');
 // $routes->post('api/v1/clientzone/login', 'Clientzone\AuthV2::login');
 // $routes->post('api/v1/clientzone/register', 'Clientzone\AuthV2::attempRegister');
 
-$routes->group('api/v1/clientzone', ['filter' => 'clientAuth'], function($routes) {
-    $routes->get('dashboard', 'Clientzone\ClientController::dashboard');
-});
-
 $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($routes) {
     // $routes->get('widget/chat-widget', 'Clientzone\WidgetSettingsController::chatWidget');
     $routes->get('chat',           'Clientzone\WidgetSettingsController::getWidgetSettings');
@@ -29,6 +25,10 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
 
     $routes->get('fetch', 'Clientzone\WidgetSettingsController::fetchSettings');
     $routes->post('update', 'Clientzone\WidgetSettingsController::updateSettings');
+});
+
+$routes->group('api/v1/clientzone/', ['filter' => 'jwtAuth'], function ($routes) {
+    $routes->get('dashboard', 'Clientzone\ClientController::dashboard');
 });
 
 

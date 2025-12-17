@@ -189,5 +189,68 @@ class ChatModel extends Model
         
         return $sessions;
     }
-    
+
+    /**
+     * Dashboard chat statistics (client-based)
+     */
+    public function getDashboardChatStatsByClient(int $clientId): array
+    {
+        $todayStart = date('Y-m-d 00:00:00');
+        $last7Days  = date('Y-m-d', strtotime('-7 days'));
+
+        return [
+            'ongoing' => $this->where('client_id', $clientId)
+                ->where('status', 'active')
+                ->where('created_at >=', $todayStart)
+                ->countAllResults(),
+
+            'today_new' => $this->where('client_id', $clientId)
+                ->where('created_at >=', $todayStart)
+                ->countAllResults(),
+
+            'today_queued' => $this->where('client_id', $clientId)
+                ->where('status', 'waiting')
+                ->where('created_at >=', $todayStart)
+                ->countAllResults(),
+
+            'last_7_days' => $this->where('client_id', $clientId)
+                ->where('created_at >=', $last7Days)
+                ->countAllResults()
+        ];
+    }
+    /**
+     * Get number of agents active today (derived login)
+     */
+    public function getLoggedInAgentsToday(int $clientId): int
+    {
+        return $this->select('agent_id')
+            ->where('client_id', $clientId)
+            ->where('agent_id IS NOT NULL')
+            ->where('updated_at >=', date('Y-m-d 00:00:00'))
+            ->groupBy('agent_id')
+            ->countAllResults();
+    }
+    /**
+     * Get total unique customers for client
+     */
+    public function getTotalUniqueCustomers(int $clientId): int
+    {
+        // return $this->select('customer_id')
+        //     ->where('client_id', $clientId)
+        //     ->where('customer_id IS NOT NULL')
+        //     ->groupBy('customer_id')
+        //     ->countAllResults();
+        return $this->select('id')
+            ->where('client_id', $clientId)
+            ->where('id IS NOT NULL')
+            ->groupBy('id')
+            ->countAllResults();
+    }
+    /**
+     * Get today online customers via MongoDB messages
+     */
+    public function getTodayOnlineCustomersFromMongo(string $clientUsername): int
+    {
+        return $this->mongoModel->countCustomerMessagesToday($clientUsername);
+    }
 }

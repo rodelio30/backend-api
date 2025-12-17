@@ -35,7 +35,7 @@ class AuthV2 extends BaseResourceController // <--- EXTEND BaseResourceControlle
         // Check user in clients table
         $client = $this->clientModel->getByUsername($username);
 
-        // 🔹 USER NOT FOUND
+        // USER NOT FOUND
         if (!$client || empty($client['id'])) {
             return $this->respond([
                 'status' => 'error',
@@ -43,7 +43,7 @@ class AuthV2 extends BaseResourceController // <--- EXTEND BaseResourceControlle
             ], 401);
         } 
 
-        // 🔹 WRONG PASSWORD
+        // WRONG PASSWORD
         if (!password_verify($password, $client['password'])) {
             return $this->respond([
                 'status' => 'error',
@@ -56,7 +56,7 @@ class AuthV2 extends BaseResourceController // <--- EXTEND BaseResourceControlle
 
             // Generate token (replace with JWT later)
             // $token = base64_encode($client['id'] . '|' . time());
-            // 🔹 JWT TOKEN PAYLOAD
+            // JWT TOKEN PAYLOAD
             $payload = [
                 'id'       => $client['id'],
                 'username' => $client['username'],
@@ -64,7 +64,7 @@ class AuthV2 extends BaseResourceController // <--- EXTEND BaseResourceControlle
                 'type'    => 'client'
             ];
 
-            // 🔹 GENERATE TOKEN
+            // GENERATE TOKEN
             $token = generateJWT($payload);
             return $this->respond([
                 'status' => 'success',
