@@ -188,7 +188,7 @@ class AuthV2 extends BaseResourceController // <--- EXTEND BaseResourceControlle
                     'user_type' => 'client'
                 ];
 
-                // 🔹 GENERATE TOKEN
+                // GENERATE TOKEN
                 $token = generateJWT($payload);
 
                 return $this->respond([

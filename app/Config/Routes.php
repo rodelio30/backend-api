@@ -34,14 +34,15 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
         // Get available languages for client
         $routes->get('locale', 'Clientzone\WidgetLanguageController::getLanguages');
 
-        // Save/update language phrases (Admin)
+        // Save/update language phrases
         $routes->post('save', 'Clientzone\WidgetLanguageController::saveLanguagePhrases');
     });
 
     $routes->group('eye-catcher', function ($routes) {
-        $routes->get('', 'Clientzone\EyeCatcherController::get');
-        $routes->post('save', 'Clientzone\EyeCatcherController::save');
-        $routes->post('upload', 'Clientzone\EyeCatcherController::uploadImage');
+        $routes->get('/', 'Clientzone\WidgetEyeCatcherController::index');
+        $routes->post('upload-image', 'Clientzone\WidgetEyeCatcherController::uploadImage');
+        $routes->put('(:num)', 'Clientzone\WidgetEyeCatcherController::update/$1');
+        $routes->delete('(:num)', 'Clientzone\WidgetEyeCatcherController::delete/$1');
     });
 });
 
