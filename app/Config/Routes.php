@@ -25,12 +25,29 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
 
     $routes->get('fetch', 'Clientzone\WidgetSettingsController::fetchSettings');
     $routes->post('update', 'Clientzone\WidgetSettingsController::updateSettings');
+
+    // Widget Settings Language Management Routes
+    $routes->group('language', function ($routes) {
+        // Fetch widget config (language + phrases)
+        $routes->get('config', 'Clientzone\WidgetLanguageController::getWidgetConfig');
+
+        // Get available languages for client
+        $routes->get('locale', 'Clientzone\WidgetLanguageController::getLanguages');
+
+        // Save/update language phrases (Admin)
+        $routes->post('save', 'Clientzone\WidgetLanguageController::saveLanguagePhrases');
+    });
+
+    $routes->group('eye-catcher', function ($routes) {
+        $routes->get('', 'Clientzone\EyeCatcherController::get');
+        $routes->post('save', 'Clientzone\EyeCatcherController::save');
+        $routes->post('upload', 'Clientzone\EyeCatcherController::uploadImage');
+    });
 });
 
 $routes->group('api/v1/clientzone/', ['filter' => 'jwtAuth'], function ($routes) {
     $routes->get('dashboard', 'Clientzone\ClientController::dashboard');
 });
-
 
 $routes->group('api/v1/clientzone', function($routes) {
     $routes->post('login', 'Clientzone\AuthV2::login');

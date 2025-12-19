@@ -73,6 +73,14 @@ abstract class BaseController extends ResourceController
     protected $clientAddonModel;
     // Models came from BO livechat
 
+
+    // Models for Widget Language Management
+    protected $languageModel;
+    protected $systemPhraseModel;
+    protected $clientPhraseModel;
+    // Models for Widget Language Management
+
+
     /**
      * @var LocaleService
      */
@@ -127,6 +135,12 @@ abstract class BaseController extends ResourceController
 
         $this->localeService = new LocaleService();
         $this->locale = $this->localeService->applyLocale($this->request, $this->session);
+
+        // Initialize models for Widget Language Management
+        $this->languageModel      = new \App\Models\ClientWidgetLanguageModel();
+        $this->systemPhraseModel = new \App\Models\ClientWidgetPhraseModel();
+        $this->clientPhraseModel = new \App\Models\ClientWidgetLanguagePhraseModel();
+        // Initialize models for Widget Language Management
     }
 
     /**

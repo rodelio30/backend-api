@@ -124,4 +124,16 @@ class ClientModel extends Model
             'active_sessions' => $activeSessionsCount
         ];
     }
+
+    /**
+     * Get client locale 
+     */
+    public function getLocaleByClientId(int $clientId): string
+    {
+        $row = $this->select('preferred_locale')
+                    ->where('id', $clientId)
+                    ->first();
+
+        return $row['preferred_locale'] ?? 'en';
+    }
 }
