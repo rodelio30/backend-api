@@ -56,9 +56,11 @@ class WidgetSettingsController extends General
 
         $data = [
             'title' => 'Chat Widget Installation',
-            'user' => $currentUser,
             'bodyClass' => 'client-settings-page',
+            'user' => $currentUser,
+            'client_id' => $clientId,
             'apiKey' => $apiKey,
+            'settings' => $settings,
             'widgetEmbedCode' => $this->buildEmbedSnippet($apiKey['api_key'] ?? null, $settings),
             'widgetScriptUrl' => rtrim($this->getWidgetFrontendBaseUrl(), '/') . '/assets/js/widget.js',
         ];
@@ -66,8 +68,6 @@ class WidgetSettingsController extends General
         return $this->respond([
             'status' => 'success',
             'data' => $data,
-            'client_id' => $clientId,
-            'settings' => $settings,
         ]);
     }
 
@@ -149,6 +149,7 @@ class WidgetSettingsController extends General
             'bodyClass' => 'client-settings-page',
             'widgetSettings' => $settings,
             'apiKey' => $apiKey,
+            'client_id' => $clientId,
             'directChatLink' => $this->resolveDirectChatLink($settings, $apiKey),
             'widgetEmbedCode' => $this->buildEmbedSnippet($apiKey['api_key'] ?? null, $settings),
             // 'sidebarContext' => $this->buildSettingsSidebarContext('website_widget.customization'),
@@ -160,13 +161,12 @@ class WidgetSettingsController extends General
             ],
         ];
 
-        // return view('client/widget/customization', $data);
+        return view('client/widget/customization', $data);
 
         return $this->respond([
             'status' => 'success',
             'data' => $data,
-            'client_id' => $clientId,
-            'settings' => $settings,
+            // 'settings' => $settings,
         ]);
     }
 
@@ -201,8 +201,9 @@ class WidgetSettingsController extends General
 
         $data = [
             'title' => 'Chat Page Link',
-            'user' => $currentUser,
             'bodyClass' => 'client-settings-page',
+            'user' => $currentUser,
+            'client_id' => $clientId,
             // 'sidebarContext' => $this->buildSettingsSidebarContext('channels.chat_page'),
             'directChatLink' => $this->resolveDirectChatLink($settings, $apiKey),
             'apiKey' => $apiKey,
@@ -212,8 +213,7 @@ class WidgetSettingsController extends General
         return $this->respond([
             'status' => 'success',
             'data' => $data,
-            'client_id' => $clientId,
-            'settings' => $settings,
+            // 'settings' => $settings,
         ]);
     }
 

@@ -80,6 +80,9 @@ abstract class BaseController extends ResourceController
     protected $clientPhraseModel;
     // Models for Widget Language Management
 
+    //Model for Eye Chatcher
+    protected $eyeCatcherModel;
+    //Model for Eye Chatcher
 
     /**
      * @var LocaleService
@@ -141,6 +144,10 @@ abstract class BaseController extends ResourceController
         $this->systemPhraseModel = new \App\Models\ClientWidgetPhraseModel();
         $this->clientPhraseModel = new \App\Models\ClientWidgetLanguagePhraseModel();
         // Initialize models for Widget Language Management
+
+        // Initialize modles for Eye Catcher 
+        $this->eyeCatcherModel = new \App\Models\ClientWidgetEyeCatcherModel();
+        // Initialize modles for Eye Catcher 
     }
 
     /**
