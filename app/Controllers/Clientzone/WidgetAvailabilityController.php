@@ -7,7 +7,7 @@ use App\Models\ClientWidgetAvailabilityModel;
 
 class WidgetAvailabilityController extends General
 {
-    protected $format = 'json';
+    // protected $format = 'json';
     protected $availabilityModel;
 
     public function __construct()

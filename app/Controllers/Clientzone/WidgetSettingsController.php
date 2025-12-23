@@ -161,12 +161,12 @@ class WidgetSettingsController extends General
             ],
         ];
 
-        return view('client/widget/customization', $data);
+        // return view('client/widget/customization', $data);
 
         return $this->respond([
             'status' => 'success',
-            'data' => $data,
-            // 'settings' => $settings,
+            // 'data' => $data,
+            'settings' => $settings,
         ]);
     }
 

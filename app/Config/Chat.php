@@ -35,7 +35,8 @@ class Chat extends BaseConfig
     // public int $heartbeatInterval = 30; // seconds
     // public int $reconnectAttempts = 5;
     // public string $websocketHost = 'api-domain.danhar.cc';
-    public string $websocketHost = 'localhost:8000';
+    // public string $websocketHost = 'localhost:8000';
+    public string $websocketHost = '10.10.197.2';
     public string $websocketHostFallback = '185.135.72.72:8443';
     public int $websocketPort = 8443;
     public int $heartbeatInterval = 30; // seconds

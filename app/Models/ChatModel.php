@@ -23,8 +23,8 @@ class ChatModel extends Model
     
     public function getActiveSessions()
     {
-        $sessions = $this->select('chat_sessions.*, users.username as agent_name')
-                         ->join('users', 'users.id = chat_sessions.agent_id', 'left')
+        $sessions = $this->select('chat_sessions.*, agents.username as agent_name, agents.full_name as agent_full_name')
+                         ->join('agents', 'agents.id = chat_sessions.agent_id', 'left')
                          ->where('chat_sessions.status', 'active') 
                          ->orderBy('chat_sessions.created_at', 'DESC')
                          ->findAll();
@@ -168,8 +168,8 @@ class ChatModel extends Model
         
         $apiKeysList = is_array($apiKeys) ? $apiKeys : [$apiKeys];
         
-        $query = $this->select('chat_sessions.*, users.username as agent_name')
-                      ->join('users', 'users.id = chat_sessions.agent_id', 'left')
+        $query = $this->select('chat_sessions.*, agents.username as agent_name, agents.full_name as agent_full_name')
+                      ->join('agents', 'agents.id = chat_sessions.agent_id', 'left')
                       ->whereIn('chat_sessions.api_key', $apiKeysList);
         
         if ($status) {

@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Services\LocaleService;
+// use App\Services\LocaleService;
 use CodeIgniter\Controller;
 use CodeIgniter\HTTP\CLIRequest;
 use CodeIgniter\HTTP\IncomingRequest;
@@ -87,7 +87,7 @@ abstract class BaseController extends ResourceController
     /**
      * @var LocaleService
      */
-    protected $localeService;
+    // protected $localeService;
 
     /**
      * Be sure to declare properties for any property fetch you initialized.
@@ -103,7 +103,7 @@ abstract class BaseController extends ResourceController
         // Do Not Edit This Line
         parent::initController($request, $response, $logger);
 
-        $this->session = service('session');
+        // $this->session = service('session');
 
         // Preload any models, libraries, etc, here.
         // $this->clientModel = new \App\Models\ClientModel();
@@ -136,8 +136,8 @@ abstract class BaseController extends ResourceController
         $this->addonTranslationModel = new \App\Models\AddonTranslationModel();
         $this->clientAddonModel = new \App\Models\ClientAddonModel();
 
-        $this->localeService = new LocaleService();
-        $this->locale = $this->localeService->applyLocale($this->request, $this->session);
+        // $this->localeService = new LocaleService();
+        // $this->locale = $this->localeService->applyLocale($this->request, $this->session);
 
         // Initialize models for Widget Language Management
         $this->languageModel      = new \App\Models\ClientWidgetLanguageModel();
