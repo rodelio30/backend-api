@@ -30,47 +30,93 @@ class AuthV2 extends BaseResourceController // <--- EXTEND BaseResourceControlle
         return $this->attemptClientLogin($username, $password);
     }
 
-    private function attemptClientLogin($username, $password)
+    // private function attemptClientLogin($username, $password)
+    // {
+    //     // Check user in clients table
+    //     $client = $this->clientModel->getByUsername($username);
+
+    //     // USER NOT FOUND
+    //     if (!$client || empty($client['id'])) {
+    //         return $this->respond([
+    //             'status' => 'error',
+    //             'message' => 'User does not exist'
+    //         ], 401);
+    //     } 
+
+    //     // WRONG PASSWORD
+    //     if (!password_verify($password, $client['password'])) {
+    //         return $this->respond([
+    //             'status' => 'error',
+    //             'message' => 'Invalid password'
+    //         ], 401);
+    //     }
+
+
+    //     if ($client && password_verify($password, $client['password'])) {
+
+    //         // Generate token (replace with JWT later)
+    //         // $token = base64_encode($client['id'] . '|' . time());
+    //         // JWT TOKEN PAYLOAD
+    //         $payload = [
+    //             'id'       => $client['id'],
+    //             'username' => $client['username'],
+    //             'email'    => $client['email'],
+    //             'type'    => 'client'
+    //         ];
+
+    //         // GENERATE TOKEN
+    //         $token = generateJWT($payload);
+    //         return $this->respond([
+    //             'status' => 'success',
+    //             'message' => 'Login successful',
+    //             'token' => $token,
+    //             'user' => [
+    //                 'id'       => $client['id'],
+    //                 'username' => $client['username'],
+    //                 'email'    => $client['email'],
+    //                 'name'     => $client['full_name'] ?? '',
+    //                 'type'     => 'client'
+    //             ]
+    //         ], 200);
+
+    //     }
+
+    //     return $this->respond([
+    //         'status' => 'error',
+    //         'message' => 'Invalid username or password'
+    //     ], 401);
+    // }
+    private function attemptClientLogin(string $username, string $password)
     {
-        // Check user in clients table
+        /**
+         * TRY CLIENT LOGIN
+         */
         $client = $this->clientModel->getByUsername($username);
 
-        // USER NOT FOUND
-        if (!$client || empty($client['id'])) {
-            return $this->respond([
-                'status' => 'error',
-                'message' => 'User does not exist'
-            ], 401);
-        } 
+        if ($client) {
 
-        // WRONG PASSWORD
-        if (!password_verify($password, $client['password'])) {
-            return $this->respond([
-                'status' => 'error',
-                'message' => 'Invalid password'
-            ], 401);
-        }
+            if (!password_verify($password, $client['password'])) {
+                return $this->respond([
+                    'status'  => 'error',
+                    'message' => 'Invalid password'
+                ], 401);
+            }
 
-
-        if ($client && password_verify($password, $client['password'])) {
-
-            // Generate token (replace with JWT later)
-            // $token = base64_encode($client['id'] . '|' . time());
-            // JWT TOKEN PAYLOAD
+            // CLIENT LOGIN SUCCESS
             $payload = [
                 'id'       => $client['id'],
                 'username' => $client['username'],
                 'email'    => $client['email'],
-                'type'    => 'client'
+                'type'     => 'client'
             ];
 
-            // GENERATE TOKEN
             $token = generateJWT($payload);
+
             return $this->respond([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Login successful',
-                'token' => $token,
-                'user' => [
+                'token'   => $token,
+                'user'    => [
                     'id'       => $client['id'],
                     'username' => $client['username'],
                     'email'    => $client['email'],
@@ -78,12 +124,54 @@ class AuthV2 extends BaseResourceController // <--- EXTEND BaseResourceControlle
                     'type'     => 'client'
                 ]
             ], 200);
-
         }
 
+        /**
+         * TRY AGENT LOGIN (IF CLIENT NOT FOUND)
+         */
+        $agent = $this->agentModel->getByUsername($username);
+
+        if ($agent) {
+
+            if (!password_verify($password, $agent['password'])) {
+                return $this->respond([
+                    'status'  => 'error',
+                    'message' => 'Invalid password'
+                ], 401);
+            }
+
+            // AGENT LOGIN SUCCESS
+            $payload = [
+                'id'        => $agent['id'],
+                'username'  => $agent['username'],
+                'email'     => $agent['email'],
+                'client_id' => $agent['client_id'],
+                'type'      => 'agent'
+            ];
+
+            $token = generateJWT($payload);
+
+            return $this->respond([
+                'status'  => 'success',
+                'message' => 'Login successful',
+                'token'   => $token,
+                'user'    => [
+                    'id'        => $agent['id'],
+                    'username'  => $agent['username'],
+                    'email'     => $agent['email'],
+                    'name'      => $agent['full_name'] ?? '',
+                    'client_id' => $agent['client_id'],
+                    'type'      => 'agent'
+                ]
+            ], 200);
+        }
+
+        /**
+         * USER NOT FOUND (NEITHER CLIENT NOR AGENT)
+         */
         return $this->respond([
-            'status' => 'error',
-            'message' => 'Invalid username or password'
+            'status'  => 'error',
+            'message' => 'User does not exist'
         ], 401);
     }
 

@@ -589,4 +589,99 @@ class MongoMessageCWModel
             return null;
         }
     }
+    /**
+     * Get last message info for a session (used for queue preview)
+     */
+    public function getLastMessageInfo($sessionId)
+    {
+        try {
+            // Get session info to determine client username
+            $chatCWModel = new \App\Models\ChatCWModel();
+            $session = $chatCWModel->getSessionBySessionId($sessionId);
+            
+            if (!$session) {
+                return null;
+            }
+            
+            $clientUsername = $this->extractClientUsernameFromSession($session);
+            $collectionName = $this->getCollectionName($clientUsername);
+            $collection = $this->database->selectCollection($collectionName);
+            
+            // Get the last message for this session
+            $message = $collection->findOne(
+                ['session_id' => $sessionId],
+                ['sort' => ['created_at' => -1]]
+            );
+            
+            if (!$message) {
+                return null;
+            }
+            
+            return [
+                'content' => $message['message'] ?? '',
+                'sender_type' => $message['sender_type'] ?? '',
+                'sent_at' => isset($message['created_at']) ? $this->convertToMalaysiaTime($message['created_at']) : null,
+                'message_type' => $message['message_type'] ?? 'text'
+            ];
+        } catch (Exception $e) {
+            error_log('Failed to get last message info: ' . $e->getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Get recent messages for a session (limited number)
+     */
+    public function getRecentMessages($sessionId, $limit = 10)
+    {
+        try {
+            // Get session info to determine client username
+            $chatCWModel = new \App\Models\ChatCWModel();
+            $session = $chatCWModel->getSessionBySessionId($sessionId);
+            
+            if (!$session) {
+                return [];
+            }
+            
+            $clientUsername = $this->extractClientUsernameFromSession($session);
+            $collectionName = $this->getCollectionName($clientUsername);
+            $collection = $this->database->selectCollection($collectionName);
+            
+            // Get recent messages
+            $messages = $collection->find(
+                ['session_id' => $sessionId],
+                [
+                    'sort' => ['created_at' => -1],
+                    'limit' => $limit
+                ]
+            );
+            
+            $result = [];
+            foreach ($messages as $message) {
+                $messageData = [
+                    'id' => (string)$message['_id'],
+                    'session_id' => $message['session_id'],
+                    'sender_type' => $message['sender_type'],
+                    'sender_id' => $message['sender_id'] ?? null,
+                    'message' => $message['message'],
+                    'message_type' => $message['message_type'] ?? 'text',
+                    'is_read' => $message['is_read'] ?? false,
+                    'created_at' => isset($message['created_at']) ? $this->convertToMalaysiaTime($message['created_at']) : null
+                ];
+                
+                // Add file data if present
+                if (isset($message['file_data'])) {
+                    $messageData['file_data'] = $message['file_data'];
+                }
+                
+                $result[] = $messageData;
+            }
+            
+            // Reverse to get chronological order
+            return array_reverse($result);
+        } catch (Exception $e) {
+            error_log('Failed to get recent messages: ' . $e->getMessage());
+            return [];
+        }
+    }
 }

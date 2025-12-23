@@ -7,7 +7,6 @@ use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
-use App\Models\ClientModel; // Include the model namespace
 
 abstract class BaseResourceController extends ResourceController
 {
@@ -15,6 +14,7 @@ abstract class BaseResourceController extends ResourceController
      * @var \App\Models\ClientModel
      */
     protected $clientModel;
+    protected $agentModel;
 
     /**
      * @var \CodeIgniter\Session\Session
@@ -41,7 +41,8 @@ abstract class BaseResourceController extends ResourceController
         $this->session = \Config\Services::session();
         
         // Initialize the model here
-        $this->clientModel = new ClientModel();
+        $this->clientModel = new \App\Models\ClientModel();
+        $this->agentModel = new \App\Models\AgentModel();
 
         // E.g.: $this->session = service('session');
         $this->localeService = new LocaleService();

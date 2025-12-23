@@ -44,10 +44,39 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
         $routes->put('(:num)', 'Clientzone\WidgetEyeCatcherController::update/$1');
         $routes->delete('(:num)', 'Clientzone\WidgetEyeCatcherController::delete/$1');
     });
+
+    $routes->group('availability', function ($routes) {
+        $routes->get('/', 'Clientzone\WidgetAvailabilityController::index');
+        $routes->post('/', 'Clientzone\WidgetAvailabilityController::save');
+    });
 });
 
 $routes->group('api/v1/clientzone/', ['filter' => 'jwtAuth'], function ($routes) {
     $routes->get('dashboard', 'Clientzone\ClientController::dashboard');
+
+    // Queue Management Routes
+    $routes->group('queue', function ($routes) {
+        // Get queue list
+        $routes->get('/', 'Clientzone\QueueController::getQueue');
+        
+        // Get queue statistics
+        $routes->get('stats', 'Clientzone\QueueController::getQueueStats');
+        
+        // Assign customer to agent
+        $routes->post('assign', 'Clientzone\QueueController::assignToAgent');
+        
+        // Change customer priority
+        $routes->put('priority', 'Clientzone\QueueController::changePriority');
+        
+        // Transfer customer to different agent
+        $routes->put('transfer', 'Clientzone\QueueController::transferCustomer');
+        
+        // Remove customer from queue
+        $routes->delete('(:segment)', 'Clientzone\QueueController::removeFromQueue/$1');
+        
+        // Get customer details
+        $routes->get('(:segment)/details', 'Clientzone\QueueController::getCustomerDetails/$1');
+    });
 });
 
 $routes->group('api/v1/clientzone', function($routes) {
