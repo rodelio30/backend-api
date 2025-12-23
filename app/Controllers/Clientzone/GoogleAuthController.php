@@ -74,10 +74,15 @@ class GoogleAuthController extends BaseResourceController
             }
 
             $jwtPayload = [
-                'client_user_id' => $client['id'],
-                'client_username' => $client['username'],
-                'client_email' => $client['email'],
-                'user_type' => 'client'
+                // 'client_user_id' => $client['id'],
+                // 'client_username' => $client['username'],
+                // 'client_email' => $client['email'],
+                // 'user_type' => 'client'
+                'id'       => $client['id'],
+                'username' => $client['username'],
+                'email'    => $client['email'],
+                'name'     => $client['full_name'] ?? '',
+                'type'     => 'client'
             ];
 
             $token = generateJWT($jwtPayload);
