@@ -32,7 +32,7 @@ class MongoMessageCWModel
         try {
             
             $connectionString = sprintf(
-                'mongodb://%s:%s@%s:%d/%s',
+                'mongodb://%s:%s@%s:%d/%s/?authSource=admin',
                 $this->databaseConfig['username'],
                 $this->databaseConfig['password'],
                 $this->databaseConfig['hostname'],
@@ -75,7 +75,7 @@ class MongoMessageCWModel
                         $this->databaseConfig['hostname'],
                         $this->databaseConfig['port'],
                         $this->databaseConfig['database'],
-                        $this->databaseConfig['database']
+                        $this->databaseConfig['authSource'] ?? $this->databaseConfig['database']
                     );
                     
                     $this->client = new Client($connectionStringWithDbAuth, $this->databaseConfig['options'] ?? []);
