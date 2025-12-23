@@ -12,8 +12,8 @@ class ChatCWModel extends Model
     
     public function getActiveSessions()
     {
-        return $this->select('chat_sessions.*, users.username as agent_name')
-                    ->join('users', 'users.id = chat_sessions.agent_id', 'left')
+        return $this->select('chat_sessions.*, agents.username as agent_name, agents.full_name as agent_full_name')
+                    ->join('agents', 'agents.id = chat_sessions.agent_id', 'left')
                     ->where('chat_sessions.status', 'active')
                     ->orderBy('chat_sessions.created_at', 'DESC')
                     ->findAll();

@@ -18,6 +18,11 @@ class AgentModel extends Model
         'api_password',
         'status',
         'preferred_locale',
+        'is_online',
+        'last_seen',
+        'current_chats',
+        'max_concurrent_chats',
+        'agent_status',
         'created_at',
         'updated_at'
     ];
@@ -155,5 +160,63 @@ class AgentModel extends Model
         $clientExists = $db->table('clients')->where('username', $username)->countAllResults() > 0;
         
         return !($agentExists || $clientExists);
+    }
+
+    /**
+     * Update agent online status
+     */
+    public function updateOnlineStatus($agentId, $isOnline)
+    {
+        $data = ['is_online' => $isOnline];
+        if (!$isOnline) {
+            $data['last_seen'] = date('Y-m-d H:i:s');
+        }
+        
+        return $this->update($agentId, $data);
+    }
+
+    /**
+     * Get online agents for a specific client
+     */
+    public function getOnlineAgentsByClient($clientId)
+    {
+        return $this->where('client_id', $clientId)
+                    ->where('is_online', 1)
+                    ->where('status', 'active')
+                    ->findAll();
+    }
+
+    /**
+     * Update agent workload (current chats count)
+     */
+    public function updateCurrentChats($agentId, $count)
+    {
+        return $this->update($agentId, ['current_chats' => $count]);
+    }
+
+    /**
+     * Increment current chats
+     */
+    public function incrementCurrentChats($agentId)
+    {
+        $agent = $this->find($agentId);
+        if ($agent) {
+            $newCount = ($agent['current_chats'] ?? 0) + 1;
+            return $this->update($agentId, ['current_chats' => $newCount]);
+        }
+        return false;
+    }
+
+    /**
+     * Decrement current chats
+     */
+    public function decrementCurrentChats($agentId)
+    {
+        $agent = $this->find($agentId);
+        if ($agent && ($agent['current_chats'] ?? 0) > 0) {
+            $newCount = $agent['current_chats'] - 1;
+            return $this->update($agentId, ['current_chats' => max(0, $newCount)]);
+        }
+        return false;
     }
 }
