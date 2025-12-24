@@ -1344,6 +1344,85 @@ class ChatController extends GeneralCW
             'data' => $sessions
         ]);
     }
+
+    // Send Message (API - Authenticated)
+    public function apiSendMessage()
+    {
+        $clientId = $this->getAuthenticatedClientId();
+
+        if (!$clientId) {
+            return $this->response->setStatusCode(401)->setJSON([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ]);
+        }
+
+        $data = $this->request->getJSON(true);
+
+        $sessionId   = $this->sanitizeInput($data['session_id'] ?? null);
+        $message     = $this->sanitizeInput($data['message'] ?? null);
+        $messageType = $this->sanitizeInput($data['message_type'] ?? 'text');
+
+        if (!$sessionId || !$message) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'status' => 'error',
+                'message' => 'Session ID and message are required'
+            ]);
+        }
+
+        // Verify session ownership
+        $session = $this->chatCWModel
+            ->where('session_id', $sessionId)
+            ->where('client_id', $clientId)
+            ->whereIn('status', ['waiting', 'active'])
+            ->first();
+
+        if (!$session) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'status' => 'error',
+                'message' => 'Chat session not found or access denied'
+            ]);
+        }
+
+        // Store message in MongoDB
+        $mongoModel = new \App\Models\MongoMessageCWModel();
+        $senderId = $this->request->clientToken->data->user_id
+                    ?? $this->request->clientToken->data->id
+                    ?? null;
+
+        $messageId = $mongoModel->insertMessage([
+            'session_id'     => $sessionId,
+            'sender_type'    => 'agent',
+            'sender_id'      => $senderId,
+            'sender_name'    => 'Agent',
+            'message'        => $message,
+            'message_type'   => $messageType,
+            'created_at'     => date('Y-m-d H:i:s'),
+            'updated_at'     => date('Y-m-d H:i:s')
+        ]);
+
+        if (!$messageId) {
+            return $this->response->setStatusCode(500)->setJSON([
+                'status' => 'error',
+                'message' => 'Failed to send message'
+            ]);
+        }
+
+        // Update session last activity
+        try {
+            $this->chatCWModel->update($session['id'], [
+                'updated_at' => date('Y-m-d H:i:s'),
+                'status'     => 'active'
+            ]);
+        } catch (\Exception $e) {
+            // Ignore timestamp update errors
+        }
+
+        return $this->respond([
+            'status'     => 'success',
+            'message_id' => $messageId
+        ]);
+    }
     // Get Messages by Session (API)
     public function apiGetMessages($sessionId)
     {
@@ -1485,12 +1564,13 @@ class ChatController extends GeneralCW
         $sessionId = $this->generateSessionId();
 
         $data = [
-            'session_id' => $sessionId,
-            'customer_name' => $customerName,
+            'session_id'        => $sessionId,
+            'client_id'         => 2, // TEST ONLY
+            'customer_name'     => $customerName,
             'customer_fullname' => $customerName,
-            'chat_topic' => $topic,
-            'user_role' => 'anonymous',
-            'status' => 'waiting'
+            'chat_topic'        => $topic,
+            'user_role'         => 'anonymous',
+            'status'            => 'waiting'
         ];
 
         $this->chatCWModel->insert($data);
@@ -1519,6 +1599,18 @@ class ChatController extends GeneralCW
             return $this->response->setStatusCode(400)->setJSON([
                 'status' => 'error',
                 'message' => 'Session ID and message required'
+            ]);
+        }
+
+        $session = $this->chatCWModel
+            ->where('session_id', $sessionId)
+            ->where('status !=', 'closed')
+            ->first();
+
+        if (!$session) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'status' => 'error',
+                'message' => 'Session not found or closed'
             ]);
         }
 
@@ -1584,6 +1676,62 @@ class ChatController extends GeneralCW
         return $this->respond([
             'status' => 'success',
             'message' => 'Session closed'
+        ]);
+    }
+    public function startWidgetSession()
+    {
+        $data = $this->request->getJSON(true);
+
+        /**
+         * STEP 1: Validate API KEY FIRST
+         */
+        $apiKey = $this->sanitizeInput($data['api_key'] ?? null);
+
+        if (!$apiKey) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'status' => 'error',
+                'message' => 'API key is required'
+            ]);
+        }
+
+        $apiKeyModel = new ApiKeyCWModel();
+        $validation = $apiKeyModel->validateApiKey($apiKey);
+
+        if (!$validation['valid']) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'status' => 'error',
+                'message' => 'Invalid API key'
+            ]);
+        }
+
+        $clientId = (int) $validation['key_data']['client_id'];
+
+        /**
+         * STEP 2: CREATE SESSION (NOW ALLOWED)
+         */
+        $sessionId = $this->generateSessionId();
+
+        $customerName = $this->sanitizeInput($data['customer_name'] ?? 'Anonymous');
+        $topic        = $this->sanitizeInput($data['chat_topic'] ?? 'Support');
+        $email        = $this->sanitizeInput($data['customer_email'] ?? null);
+
+        $this->chatCWModel->insert([
+            'session_id'        => $sessionId,
+            'client_id'         => $clientId,
+            'customer_name'     => $customerName,
+            'customer_fullname' => $customerName,
+            'chat_topic'        => $topic,
+            'customer_email'    => $email,
+            'user_role'         => 'anonymous',
+            'status'            => 'waiting'
+        ]);
+
+        /**
+         * STEP 3: FINAL RESPONSE
+         */
+        return $this->respond([
+            'status'     => 'success',
+            'session_id' => $sessionId
         ]);
     }
 }

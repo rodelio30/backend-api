@@ -107,16 +107,24 @@ $routes->get('test-mongo', 'TestMongoController::index');
 // Chat API routes (Clientzone - Authenticated)
 $routes->group('api/v1/clientzone/chat', ['filter' => 'jwtAuth'], function ($routes) {
     $routes->get('sessions', 'ChatWidget\ChatController::apiGetChatSessions');
+    $routes->post('send-message', 'ChatWidget\ChatController::apiSendMessage');
     $routes->get('messages/(:segment)', 'ChatWidget\ChatController::apiGetMessages/$1');
     $routes->post('close-session', 'ChatWidget\ChatController::apiCloseSession');
     $routes->get('agent-workload', 'ChatWidget\ChatController::apiGetAgentWorkload');
 });
-// Public Chat API routes (no auth filter)
-$routes->group('api/v1/clientzone/public/chat', function ($routes) {
+
+// Public APIs
+$routes->group('api/v1/public/chat', function ($routes) {
     $routes->post('start', 'ChatWidget\ChatController::publicStartSession');
     $routes->post('send-message', 'ChatWidget\ChatController::publicSendMessage');
     $routes->get('messages/(:segment)', 'ChatWidget\ChatController::publicGetMessages/$1');
     $routes->post('close', 'ChatWidget\ChatController::publicCloseSession');
+});
+
+// Widget (API Key Auth)
+$routes->group('api/v1/widget', function ($routes) {
+    $routes->post('/chat/start-session', 'ChatWidget\ChatController::startWidgetSession');
+    $routes->get('config', 'ChatWidget\WidgetConfigController::publicConfig');
 });
 
 // Chat routes (Customer side)
@@ -205,5 +213,6 @@ $routes->group('api', function($routes) {
     $routes->post('widget/validate', 'ChatWidget\WidgetAuthController::validateWidget');
     $routes->post('widget/validate-session', 'ChatWidget\WidgetAuthController::validateChatStart');
     $routes->post('widget/log-message', 'ChatWidget\WidgetAuthController::logMessageSent');
+
     $routes->get('widget/config', 'ChatWidget\WidgetConfigController::publicConfig');
 });
