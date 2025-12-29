@@ -45,8 +45,29 @@ class General extends BaseController
      */
     public function isClientAuthenticated(): bool
     {
-        return isset($this->request->userData->client_user_id) ||
-               isset($this->request->userData->agent_user_id);
+        // return isset($this->request->userData->client_user_id) ||
+        //        isset($this->request->userData->agent_user_id);
+        $tokenObject = $this->request->clientToken ?? null;
+        return $tokenObject && isset($tokenObject->data->id);
+    }
+
+    /**
+     * Get client/agent ID from token
+     */
+    public function getTokenClientId(): ?int
+    {
+        if ($this->isClientAuthenticated()) {
+            $tokenObject = $this->request->clientToken ?? null;
+            $type = $tokenObject->data->type ?? null;
+
+            if ($type === 'client') {
+                return (int) $tokenObject->data->id;
+            }
+            if ($type === 'agent') {
+                return (int) $tokenObject->data->id;
+            }
+        }
+        return null;
     }
 
     /**
@@ -167,7 +188,7 @@ class General extends BaseController
         }
 
         if ($type === 'agent') {
-            return (int) $request->userData['client_id']; // if you add this to token
+            return (int) $request->userData['client_id']; 
         }
 
         return null;

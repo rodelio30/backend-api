@@ -51,8 +51,11 @@ class JWTAuthFilter implements FilterInterface
             return service('response')
                     ->setStatusCode(401)
                     ->setJSON([
+                        'status' => 'error',
+                        'type' => 'auth',
                         'message' => 'Invalid token',
-                        'error' => $e->getMessage()
+                        'error' => ENVIRONMENT === 'development' ? $e->getMessage() : null
+                        // 'error' => $e->getMessage()
                     ]);
         }
 

@@ -51,7 +51,7 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
     });
 });
 
-$routes->group('api/v1/clientzone/', ['filter' => 'jwtAuth'], function ($routes) {
+$routes->group('api/v1/clientzone', ['filter' => 'jwtAuth'], function ($routes) {
     $routes->get('dashboard', 'Clientzone\ClientController::dashboard');
 
     // Queue Management Routes
@@ -77,7 +77,25 @@ $routes->group('api/v1/clientzone/', ['filter' => 'jwtAuth'], function ($routes)
         // Get customer details
         $routes->get('(:segment)/details', 'Clientzone\QueueController::getCustomerDetails/$1');
     });
+
+    // Canned Responses CRUD
+    $routes->get('canned-responses-for-api-key', 'Clientzone\CannedResponseController::getCannedResponsesForApiKey');
+    $routes->get('get-canned-response/(:segment)', 'Clientzone\CannedResponseController::getCannedResponse/$1');
+    $routes->post('save-canned-response', 'Clientzone\CannedResponseController::saveCannedResponse');
+    $routes->post('delete-canned-response', 'Clientzone\CannedResponseController::deleteCannedResponse');
+    $routes->post('toggle-canned-response-status', 'Clientzone\CannedResponseController::toggleCannedResponseStatus');
+    // Widget Availability (already correct)
+    $routes->group('widget', function ($routes) {
+        $routes->group('availability', function ($routes) {
+            $routes->get('/', 'Clientzone\WidgetAvailabilityController::index');
+            $routes->post('/', 'Clientzone\WidgetAvailabilityController::save');
+        });
+    });
 });
+
+    // CANNED RESPONSE API Action execution (used by live chat)
+    $routes->post('api/canned-response-action', 'CannedResponseActionController::execute');
+    $routes->options('api/canned-response-action', 'CannedResponseActionController::execute');
 
 $routes->group('api/v1/clientzone', function($routes) {
     $routes->post('login', 'Clientzone\AuthV2::login');
@@ -113,8 +131,16 @@ $routes->group('api/v1/clientzone/chat', ['filter' => 'jwtAuth'], function ($rou
     $routes->get('agent-workload', 'ChatWidget\ChatController::apiGetAgentWorkload');
 });
 
+    // $routes->options('api/v1/clientzone/public/chat/start', function() {
+    //     header('Access-Control-Allow-Origin: *');
+    //     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    //     header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    //     http_response_code(200);
+    //     exit();
+    // });
+
 // Public APIs
-$routes->group('api/v1/public/chat', function ($routes) {
+$routes->group('api/v1/clientzone/public/chat', function ($routes) {
     $routes->post('start', 'ChatWidget\ChatController::publicStartSession');
     $routes->post('send-message', 'ChatWidget\ChatController::publicSendMessage');
     $routes->get('messages/(:segment)', 'ChatWidget\ChatController::publicGetMessages/$1');
