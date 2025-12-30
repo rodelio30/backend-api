@@ -2,9 +2,9 @@
 
 namespace App\Controllers;
 
-use App\Controllers\BaseController;
+use App\Controllers\General;
 
-class CannedResponseActionController extends BaseController
+class CannedResponseActionController extends General
 {
     /**
      * Execute API canned response (Live Chat)
@@ -84,18 +84,13 @@ class CannedResponseActionController extends BaseController
 
         // Build API payload
         $params = json_decode($canned['api_parameters'], true) ?? [];
-        $params = $this->replaceVariables($params, $session);
+        $params = $this->replaceSessionVariables($params, $session);
 
         // Always inject customer identifier
-        // $params[$clientConfig['customer_id_field']]
-        //     = $session['external_system_id']
-        //     ?? $session['customer_id']
-        //     ?? null;
         $externalId = $session['external_system_id'] ?? $session['customer_id'] ?? null;
 
         if (empty($externalId)) {
             return $this->respond([
-                'status'  => "error",
                 'success' => false,
                 'message' => 'External user ID missing for this chat session'
             ], 422);
@@ -108,29 +103,6 @@ class CannedResponseActionController extends BaseController
              . '/' . $canned['api_action_type'];
 
         return $this->callExternalApi($url, $clientConfig, $params);
-    }
-
-    /**
-     * Replace variables like {uid}, {email}, etc.
-     */
-    private function replaceVariables(array $params, array $session): array
-    {
-        $map = [
-            '{uid}' => $session['external_system_id'] ?? '',
-            '{user_id}' => $session['external_system_id'] ?? '',
-            '{email}' => $session['customer_email'] ?? '',
-            '{name}' => $session['customer_name'] ?? '',
-            '{session_id}' => $session['session_id'] ?? '',
-            '{api_key}' => $session['api_key'] ?? ''
-        ];
-
-        array_walk_recursive($params, function (&$value) use ($map) {
-            if (is_string($value)) {
-                $value = str_replace(array_keys($map), array_values($map), $value);
-            }
-        });
-
-        return $params;
     }
 
     /**
@@ -164,7 +136,6 @@ class CannedResponseActionController extends BaseController
             ]);
 
             return $this->respond([
-                'status'  => "error",
                 'success' => true,
                 'status' => $response->getStatusCode(),
                 'data' => json_decode($response->getBody(), true)
@@ -174,7 +145,6 @@ class CannedResponseActionController extends BaseController
             log_message('error', 'Canned API Action Error: ' . $e->getMessage());
 
             return $this->respond([
-                'status'  => "error",
                 'success' => false,
                 'message' => 'External API call failed'
             ], 500);

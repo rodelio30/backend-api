@@ -49,6 +49,11 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
         $routes->get('/', 'Clientzone\WidgetAvailabilityController::index');
         $routes->post('/', 'Clientzone\WidgetAvailabilityController::save');
     });
+
+    $routes->group('welcome', function ($routes) {
+        $routes->get('/', 'Clientzone\WidgetWelcomeController::index');
+        $routes->post('/', 'Clientzone\WidgetWelcomeController::save');
+    });
 });
 
 $routes->group('api/v1/clientzone', ['filter' => 'jwtAuth'], function ($routes) {

@@ -587,7 +587,8 @@ class WidgetSettingsController extends General
 
     protected function buildEmbedSnippet(?string $apiKey, array $settings): string
     {
-        $baseUrl = $this->getWidgetFrontendBaseUrl();
+        // $baseUrl = $this->getWidgetFrontendBaseUrl();
+        $baseUrl = $this->getWidgetBaseUrl();
         $config = [
             'baseUrl' => $baseUrl,
             'apiKey' => $apiKey ?: 'YOUR_API_KEY',

@@ -3,17 +3,14 @@
 namespace App\Controllers\Clientzone;
 
 use App\Controllers\General;
-use App\Models\ClientWidgetAvailabilityModel;
 
 class WidgetAvailabilityController extends General
 {
     // protected $format = 'json';
-    protected $availabilityModel;
 
     public function __construct()
     {
         helper('jwt');
-        $this->availabilityModel = new ClientWidgetAvailabilityModel();
     }
 
     /**

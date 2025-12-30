@@ -233,4 +233,68 @@ class General extends BaseController
         // return 'http://localhost:8080/';
         return 'https://clientzone.taapin.com';
     }
+
+    /**
+     * Resolve the base URL for the public base url CORS.
+     */
+    protected function getWidgetBaseUrl(): string
+    {
+        $envOverride = env('widget.frontendUrl', env('widget.frontend_url', ''));
+        if (!empty($envOverride)) {
+            return rtrim($envOverride, '/');
+        }
+
+        $appConfig = config('App');
+        if (is_object($appConfig) && !empty($appConfig->widgetFrontendUrl ?? null)) {
+            return rtrim($appConfig->widgetFrontendUrl, '/');
+        }
+
+        return 'https://api-taapin.danhar.cc';
+    }
+
+    /**
+     * Get variable replacement map for canned responses
+     * 
+     * @param array $session Session data from chat_sessions table
+     * @return array Map of variables to their values
+     */
+    protected function getCannedResponseVariableMap(array $session): array
+    {
+        return [
+            '{uid}' => $session['external_system_id'] ?? '',
+            '{user_id}' => $session['external_system_id'] ?? '',
+            '{email}' => $session['customer_email'] ?? '',
+            '{name}' => $session['customer_name'] ?? '',
+            '{topic}' => $session['chat_topic'] ?? '',
+            '{session_id}' => $session['session_id'] ?? '',
+            '{api_key}' => $session['api_key'] ?? ''
+        ];
+    }
+
+    /**
+     * Replace variables in parameters or content
+     * 
+     * @param mixed $data String content or array of parameters
+     * @param array $session Session data from chat_sessions table
+     * @return mixed Processed data with variables replaced
+     */
+    protected function replaceSessionVariables($data, array $session)
+    {
+        $map = $this->getCannedResponseVariableMap($session);
+
+        if (is_string($data)) {
+            return str_replace(array_keys($map), array_values($map), $data);
+        }
+
+        if (is_array($data)) {
+            array_walk_recursive($data, function (&$value) use ($map) {
+                if (is_string($value)) {
+                    $value = str_replace(array_keys($map), array_values($map), $value);
+                }
+            });
+            return $data;
+        }
+
+        return $data;
+    }
 }

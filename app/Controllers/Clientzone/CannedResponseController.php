@@ -107,8 +107,14 @@ class CannedResponseController extends General
 
         // Optional session-based variable replacement
         $sessionId = $this->request->getGet('session_id');
-        if ($sessionId) {
-            $response = $this->processVariableReplacement($response, $sessionId);
+        if ($sessionId && !empty($response['content'])) {
+            $session = $this->chatModel
+                ->where('session_id', $sessionId)
+                ->first();
+            
+            if ($session) {
+                $response['content'] = $this->replaceSessionVariables($response['content'], $session);
+            }
         }
 
         return $this->jsonResponse([
@@ -130,7 +136,8 @@ class CannedResponseController extends General
         }
 
         try {
-            $clientId = $this->getTokenClientId();
+            $currentUser = $this->getCurrentClientUser();
+            $clientId = $this->getClientId();
 
             if (!$clientId) {
                 return $this->response->setStatusCode(401)->setJSON([
@@ -139,16 +146,13 @@ class CannedResponseController extends General
                 ]);
             }
 
-            $currentUser = $this->getCurrentClientUser();
-            $clientId = $this->getClientId();
-
             $data = $this->request->getJSON(true);
 
-            $id   = $this->sanitizeInput($data['id'] ?? null);
+            $id = !empty($data['id']) ? (int)$data['id'] : null;
             $title = $this->sanitizeInput($data['title'] ?? '');
             $content = $this->sanitizeInput($data['content'] ?? '');
             $responseType = $this->sanitizeInput($data['response_type'] ?? 'plain_text');
-            $apiActionType = $this->sanitizeInput($data['api_action_type'] ?? null);
+            $apiActionType = !empty($data['api_action_type']) ? $this->sanitizeInput($data['api_action_type']) : null;
             $apiKey = $this->sanitizeInput($data['api_key'] ?? '');
             $isActive = isset($data['is_active']) && $data['is_active'] ? 1 : 0;
 
@@ -296,7 +300,7 @@ class CannedResponseController extends General
         }
 
         $data = $this->request->getJSON(true);
-        $id   = $this->sanitizeInput($data['id'] ?? null);
+        $id = !empty($data['id']) ? (int)$data['id'] : null;
 
         $currentUser = $this->getCurrentClientUser();
 
@@ -339,7 +343,7 @@ class CannedResponseController extends General
         }
 
         $data = $this->request->getJSON(true);
-        $id   = $this->sanitizeInput($data['id'] ?? null);
+        $id = !empty($data['id']) ? (int)$data['id'] : null;
 
         $currentUser = $this->getCurrentClientUser();
 
@@ -367,36 +371,6 @@ class CannedResponseController extends General
             'status' => 'success',
             'message' => 'Status updated'
         ]);
-    }
-
-    /**
-     * Variable replacement for preview
-     */
-    private function processVariableReplacement(array $response, string $sessionId): array
-    {
-        $session = $this->chatModel
-            ->where('session_id', $sessionId)
-            ->first();
-
-        if (!$session) {
-            return $response;
-        }
-
-        $map = [
-            '{uid}' => $session['external_system_id'] ?? '',
-            '{user_id}' => $session['external_system_id'] ?? '',
-            '{name}' => $session['customer_name'] ?? '',
-            '{email}' => $session['customer_email'] ?? '',
-            '{topic}' => $session['chat_topic'] ?? '',
-            '{session_id}' => $session['session_id'] ?? '',
-            '{api_key}' => $session['api_key'] ?? ''
-        ];
-
-        foreach ($map as $key => $value) {
-            $response['content'] = str_replace($key, $value, $response['content']);
-        }
-
-        return $response;
     }
 }
 

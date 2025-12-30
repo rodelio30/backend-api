@@ -78,11 +78,15 @@ abstract class BaseController extends ResourceController
     protected $languageModel;
     protected $systemPhraseModel;
     protected $clientPhraseModel;
-    // Models for Widget Language Management
 
     //Model for Eye Chatcher
     protected $eyeCatcherModel;
-    //Model for Eye Chatcher
+    
+    // Model for Availability Widget
+    protected $availabilityModel;
+
+    // Model for Welcome Widget
+    protected $welcomeModel;
 
     /**
      * @var LocaleService
@@ -143,11 +147,15 @@ abstract class BaseController extends ResourceController
         $this->languageModel      = new \App\Models\ClientWidgetLanguageModel();
         $this->systemPhraseModel = new \App\Models\ClientWidgetPhraseModel();
         $this->clientPhraseModel = new \App\Models\ClientWidgetLanguagePhraseModel();
-        // Initialize models for Widget Language Management
 
         // Initialize modles for Eye Catcher 
         $this->eyeCatcherModel = new \App\Models\ClientWidgetEyeCatcherModel();
-        // Initialize modles for Eye Catcher 
+
+        // Initialize models for Availability Widget
+        $this->availabilityModel = new \App\Models\ClientWidgetAvailabilityModel();
+
+        // Initialize models for Welcome Widget
+        $this->welcomeModel = new \App\Models\ClientWidgetWelcomeModel();
     }
 
     /**
