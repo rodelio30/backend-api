@@ -46,13 +46,20 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
     });
 
     $routes->group('availability', function ($routes) {
-        $routes->get('/', 'Clientzone\WidgetAvailabilityController::index');
-        $routes->post('/', 'Clientzone\WidgetAvailabilityController::save');
+        $routes->get('', 'Clientzone\WidgetAvailabilityController::index');
+        $routes->post('', 'Clientzone\WidgetAvailabilityController::save');
     });
 
     $routes->group('welcome', function ($routes) {
-        $routes->get('/', 'Clientzone\WidgetWelcomeController::index');
-        $routes->post('/', 'Clientzone\WidgetWelcomeController::save');
+        $routes->get('', 'Clientzone\WidgetWelcomeController::index');
+        $routes->post('', 'Clientzone\WidgetWelcomeController::save');
+    });
+
+    // Tags
+    $routes->group('tags', function ($routes) {
+        $routes->get('', 'Clientzone\WidgetTagController::index');
+        $routes->post('', 'Clientzone\WidgetTagController::create');
+        $routes->delete('(:num)', 'Clientzone\WidgetTagController::delete/$1');
     });
 });
 

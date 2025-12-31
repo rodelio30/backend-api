@@ -71,6 +71,39 @@ class General extends BaseController
     }
 
     /**
+     * Get client/agent ID from token
+     */
+    public function getTokenUserName(): ?string
+    {
+        if ($this->isClientAuthenticated()) {
+            $tokenObject = $this->request->clientToken ?? null;
+            $type = $tokenObject->data->type ?? null;
+
+            if ($type === 'client') {
+                return (string) $tokenObject->data->username;
+            }
+            if ($type === 'agent') {
+                return (string) $tokenObject->data->username;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get client/agent ID from token
+     */
+    public function getTokenUserType(): ?string
+    {
+        if ($this->isClientAuthenticated()) {
+            $tokenObject = $this->request->clientToken ?? null;
+            $type = $tokenObject->data->type ?? null;
+
+            return (string) $type;
+        }
+        return null;
+    }
+
+    /**
      * Get current admin user from token
      */
     public function getCurrentUser()

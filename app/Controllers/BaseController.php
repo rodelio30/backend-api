@@ -88,6 +88,9 @@ abstract class BaseController extends ResourceController
     // Model for Welcome Widget
     protected $welcomeModel;
 
+    // Model for Widget Tag
+    protected $tagModel;
+
     /**
      * @var LocaleService
      */
@@ -156,6 +159,9 @@ abstract class BaseController extends ResourceController
 
         // Initialize models for Welcome Widget
         $this->welcomeModel = new \App\Models\ClientWidgetWelcomeModel();
+
+        // Initialize models for Widget Tag
+        $this->tagModel = new \App\Models\ClientWidgetTagModel();
     }
 
     /**
