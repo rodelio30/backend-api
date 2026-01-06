@@ -270,10 +270,14 @@ class AuthV2 extends BaseResourceController // <--- EXTEND BaseResourceControlle
             if ($apiKeyCreated) {
                 // Automatically log the user in
                 $payload = [
-                    'client_user_id' => $clientId,
-                    'client_username' => $username,
-                    'client_email' => $email,
-                    'user_type' => 'client'
+                    // 'client_user_id' => $clientId,
+                    // 'client_username' => $username,
+                    // 'client_email' => $email,
+                    // 'user_type' => 'client'
+                    'id'        => $clientId,
+                    'username'  => $username,
+                    'email'     => $email,
+                    'type'      => 'client'
                 ];
 
                 // GENERATE TOKEN

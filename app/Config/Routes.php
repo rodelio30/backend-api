@@ -66,6 +66,18 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
 $routes->group('api/v1/clientzone', ['filter' => 'jwtAuth'], function ($routes) {
     $routes->get('dashboard', 'Clientzone\ClientController::dashboard');
 
+
+    $routes->group('queue', function ($routes) {
+        $routes->get('', 'Clientzone\ChatsController::index');
+        $routes->post('(:segment)/accept', 'Clientzone\ChatsController::accept/$1');
+
+        $routes->get('(:segment)/messages', 'Clientzone\ChatsController::messages/$1');
+        $routes->post('(:segment)/messages', 'Clientzone\ChatsController::sendMessage/$1');
+
+        $routes->get('(:segment)', 'Clientzone\ChatsController::sessionDetails/$1');
+        $routes->post('(:segment)/close', 'Clientzone\ChatsController::close/$1');
+    });
+
     // Queue Management Routes
     $routes->group('queue', function ($routes) {
         // Get queue list

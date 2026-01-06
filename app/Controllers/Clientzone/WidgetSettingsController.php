@@ -51,7 +51,12 @@ class WidgetSettingsController extends General
         }
 
         // Fetch settings
-        $settings = $this->clientWidgetSettingModel->getByClientId($clientId);
+        // $settings = $this->clientWidgetSettingModel->getByClientId($clientId);
+        $settings = $this->mergeWithDefaults($this->clientWidgetSettingModel->getByClientId($clientId));
+        // $settings = array_merge(
+        //     $this->getDefaultWidgetSettings(),
+        //     $this->clientWidgetSettingModel->getByClientId($clientId)
+        // );
         $apiKey = $this->apiKeyModel->where('client_id', $clientId)->first();
 
         $data = [
@@ -333,7 +338,7 @@ class WidgetSettingsController extends General
             ]);
         }
 
-        $payload = (array) $tokenObject->data;
+        // $payload = (array) $tokenObject->data;
 
         // $clientId = $payload['id'] ?? null;
 
@@ -346,19 +351,33 @@ class WidgetSettingsController extends General
             ], 422);
         }
 
+        // $rules = [
+        //     'widget_name' => 'required|string|min_length[3]|max_length[100]',
+        //     'widget_status' => 'required|in_list[active,inactive]',
+        //     'widget_color' => 'required|regex_match[/^#[0-9a-fA-F]{6}$/]',
+        //     'theme' => 'required|string|max_length[50]',
+        //     'position' => 'required|string|max_length[30]',
+        //     'welcome_message' => 'permit_empty|string|max_length[255]',
+        //     'welcome_delay_ms' => 'required|integer|greater_than_equal_to[0]|less_than_equal_to[60000]',
+        //     'welcome_auto_hide' => 'required|in_list[0,1]',
+        //     'welcome_auto_hide_delay_ms' => 'required|integer|greater_than_equal_to[0]|less_than_equal_to[60000]',
+        //     'avatar_type' => 'required|in_list[emoji,image,none]',
+        //     'avatar_value' => 'permit_empty|string|max_length[255]',
+        // ];
+
         $rules = [
-            'widget_name' => 'required|string|min_length[3]|max_length[100]',
-            'widget_status' => 'required|in_list[active,inactive]',
-            'widget_color' => 'required|regex_match[/^#[0-9a-fA-F]{6}$/]',
-            'theme' => 'required|string|max_length[50]',
-            'position' => 'required|string|max_length[30]',
-            'welcome_message' => 'permit_empty|string|max_length[255]',
-            'welcome_delay_ms' => 'required|integer|greater_than_equal_to[0]|less_than_equal_to[60000]',
-            'welcome_auto_hide' => 'required|in_list[0,1]',
-            'welcome_auto_hide_delay_ms' => 'required|integer|greater_than_equal_to[0]|less_than_equal_to[60000]',
-            'avatar_type' => 'required|in_list[emoji,image,none]',
-            'avatar_value' => 'permit_empty|string|max_length[255]',
-        ];
+                'widget_name' => 'permit_empty|string|min_length[3]|max_length[100]',
+                'widget_status' => 'permit_empty|in_list[active,inactive]',
+                'widget_color' => 'permit_empty|regex_match[/^#[0-9a-fA-F]{6}$/]',
+                'theme' => 'permit_empty|string|max_length[50]',
+                'position' => 'permit_empty|string|max_length[30]',
+                'welcome_message' => 'permit_empty|string|max_length[255]',
+                'welcome_delay_ms' => 'permit_empty|integer|greater_than_equal_to[0]|less_than_equal_to[60000]',
+                'welcome_auto_hide' => 'permit_empty',
+                'welcome_auto_hide_delay_ms' => 'permit_empty|integer|greater_than_equal_to[0]|less_than_equal_to[60000]',
+                'avatar_type' => 'permit_empty|in_list[emoji,image,none]',
+                'avatar_value' => 'permit_empty|string|max_length[255]',
+            ];
 
         if (!$this->validateData($payload, $rules)) {
             return $this->jsonResponse([
@@ -368,7 +387,7 @@ class WidgetSettingsController extends General
             ], 422);
         }
 
-        $clientId = $this->getClientId();
+        $clientId = $this->getTokenClientId();
 
         $behaviorDefaults = [
             'disable_sound_notification' => false,
@@ -498,15 +517,23 @@ class WidgetSettingsController extends General
             'behavior_options' => $behaviorDefaults,
         ];
 
-        $merged = array_merge($defaults, array_filter($settings, function ($value) {
-            return $value !== null;
-        }));
+        // ✅ array_replace preserves false, 0, and empty strings
+        $merged = array_replace($defaults, $settings);
 
-        if (!isset($merged['behavior_options']) || !is_array($merged['behavior_options'])) {
-            $merged['behavior_options'] = $behaviorDefaults;
-        } else {
-            $merged['behavior_options'] = array_merge($behaviorDefaults, $merged['behavior_options']);
-        }
+        // Normalize behavior_options safely
+        $merged['behavior_options'] = array_replace(
+            $behaviorDefaults,
+            is_array($merged['behavior_options'] ?? null) ? $merged['behavior_options'] : []
+        );
+        // $merged = array_merge($defaults, array_filter($settings, function ($value) {
+        //     return $value !== null;
+        // }));
+
+        // if (!isset($merged['behavior_options']) || !is_array($merged['behavior_options'])) {
+        //     $merged['behavior_options'] = $behaviorDefaults;
+        // } else {
+        //     $merged['behavior_options'] = array_merge($behaviorDefaults, $merged['behavior_options']);
+        // }
 
         return $merged;
     }
@@ -662,5 +689,6 @@ class WidgetSettingsController extends General
 
         return $settings['avatar_value'] ?? null;
     }
+
 }
 

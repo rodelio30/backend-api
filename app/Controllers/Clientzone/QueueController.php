@@ -290,7 +290,8 @@ class QueueController extends BaseController
                     'agent_id' => $agentId,
                     'status' => 'active',
                     'accepted_at' => date('Y-m-d H:i:s'),
-                    'accepted_by' => $agentId
+                    // 'accepted_by' => $agentId
+                    'accepted_by' => $agent['username']
                 ])
                 ->update();
             

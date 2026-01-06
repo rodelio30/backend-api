@@ -52,11 +52,37 @@ class ChatModel extends Model
         return $sessions;
     }
     
-    public function assignAgent($sessionId, $agentId)
+    // public function assignAgent($sessionId, $agentId)
+    // {
+    //     return $this->where('session_id', $sessionId)
+    //                 ->set(['agent_id' => $agentId, 'status' => 'active'])
+    //                 ->update();
+    // }
+    public function assignAgent(string $sessionId, int $agentId, string $acceptedBy): bool
     {
-        return $this->where('session_id', $sessionId)
-                    ->set(['agent_id' => $agentId, 'status' => 'active'])
-                    ->update();
+        return (bool) $this->where('session_id', $sessionId)
+            ->where('status', 'waiting') // prevent double-accept
+            ->set([
+                'agent_id'    => $agentId,
+                'status'      => 'active',
+                'accepted_at' => date('Y-m-d H:i:s'),
+                'accepted_by' => $acceptedBy,
+                'updated_at'  => date('Y-m-d H:i:s'),
+            ])
+            ->update();
+    }
+    public function assignClient(string $sessionId, int $clientId, string $acceptedBy): bool
+    {
+        return (bool) $this->where('session_id', $sessionId)
+            ->where('status', 'waiting')
+            ->set([
+                'client_user_id' => $clientId,
+                'status'         => 'active',
+                'accepted_at'    => date('Y-m-d H:i:s'),
+                'accepted_by'    => $acceptedBy,
+                'updated_at'     => date('Y-m-d H:i:s'),
+            ])
+            ->update();
     }
     
     public function closeSession($sessionId)

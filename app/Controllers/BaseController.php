@@ -53,6 +53,8 @@ abstract class BaseController extends ResourceController
 
     // Models came from BO livechat
     protected $chatModel;
+    protected $mongoMessageModel; 
+
     protected $userModel;
     protected $messageModel;
     protected $clientModel;
@@ -142,6 +144,8 @@ abstract class BaseController extends ResourceController
         $this->addonModel = new \App\Models\AddonModel();
         $this->addonTranslationModel = new \App\Models\AddonTranslationModel();
         $this->clientAddonModel = new \App\Models\ClientAddonModel();
+
+        $this->mongoMessageModel = new \App\Models\MongoMessageModel();
 
         // $this->localeService = new LocaleService();
         // $this->locale = $this->localeService->applyLocale($this->request, $this->session);

@@ -44,7 +44,7 @@ class ClientController extends General
          * ================================
          */
 
-        // 🔹 Agents
+        // Agents
         $totalAgents = $this->agentModel
             ->where('client_id', $clientId)
             ->countAllResults();
@@ -52,7 +52,7 @@ class ClientController extends General
         $loggedInAgents = $this->chatModel
             ->getLoggedInAgentsToday($clientId);
 
-        // 🔹 Customers
+        // Customers
         $totalCustomers = $this->chatModel
             ->getTotalUniqueCustomers($clientId);
 
@@ -60,7 +60,7 @@ class ClientController extends General
             ->getTodayOnlineCustomersFromMongo($clientName);
 
 
-        // 🔹 Chats
+        // Chats
         $chatStats = $this->chatModel
             ->getDashboardChatStatsByClient($clientId);
 
