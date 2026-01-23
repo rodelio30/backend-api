@@ -93,6 +93,7 @@ class QueueController extends BaseController
                 
                 // Get last message from MongoDB
                 $lastMessage = $this->getLastMessage($session['session_id']);
+                $messageStats = $this->getMessageStats($session['session_id']);
                 
                 $queueList[] = [
                     'session_id' => $session['session_id'],
@@ -106,6 +107,12 @@ class QueueController extends BaseController
                     'wait_time_formatted' => $waitTimeFormatted,
                     'created_at' => $session['created_at'],
                     'last_message' => $lastMessage,
+
+                    // NEW FIELDS
+                    'unread_count' => $messageStats['unread_count'],
+                    'is_read' => $messageStats['is_read'],
+                    'last_message_count' => $messageStats['last_message_count'],
+
                     'queue_priority' => $session['queue_priority'] ?? null,
                     'user_role' => $session['user_role'] ?? 'anonymous'
                 ];
@@ -122,12 +129,7 @@ class QueueController extends BaseController
             ], 200);
             
         } catch (\Exception $e) {
-            log_message('error', 'Queue fetch error: ' . $e->getMessage());
-            return $this->jsonResponse([
-                'status' => 'error',
-                'message' => 'Failed to fetch queue',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Failed to fetch queue', $e, 500);
         }
     }
     
@@ -214,25 +216,21 @@ class QueueController extends BaseController
             ], 200);
             
         } catch (\Exception $e) {
-            log_message('error', 'Queue stats error: ' . $e->getMessage());
-            return $this->jsonResponse([
-                'status' => 'error',
-                'message' => 'Failed to fetch queue statistics',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Failed to fetch queue statistics', $e, 500);
         }
     }
-    
+
     /**
      * POST /api/v1/clientzone/queue/assign
      * Manually assign a customer from queue to an agent
      * Body: { "session_id": "...", "agent_id": 123 }
      */
+    // Can Accept as Agent or Client User
     public function assignToAgent()
     {
         $clientId = $this->getClientIdFromToken();
         $currentAgentId = $this->getAgentIdFromToken();
-        
+
         if (!$clientId) {
             return $this->jsonResponse([
                 'status' => 'error',
@@ -242,83 +240,117 @@ class QueueController extends BaseController
         
         $data = $this->request->getJSON(true);
         $sessionId = $data['session_id'] ?? null;
-        $agentId = $data['agent_id'] ?? $currentAgentId;
-        
-        if (!$sessionId || !$agentId) {
+
+        if (!$sessionId) {
             return $this->jsonResponse([
-                'status' => 'error',
-                'message' => 'session_id and agent_id are required'
+                'status'  => 'error',
+                'message' => 'session_id is required'
             ], 400);
         }
-        
         try {
-            // Verify the session belongs to this client and is waiting
+            // Validate session
             $session = $this->chatModel
                 ->where('session_id', $sessionId)
                 ->where('client_id', $clientId)
                 ->first();
-            
+
             if (!$session) {
                 return $this->jsonResponse([
-                    'status' => 'error',
-                    'message' => 'Session not found or access denied'
+                    'status'  => 'error',
+                    'message' => 'Session not found or Client ID missing'
                 ], 404);
             }
-            
+
             if ($session['status'] !== 'waiting') {
                 return $this->jsonResponse([
-                    'status' => 'error',
-                    'message' => 'Session is not in waiting status'
-                ], 400);
+                    'status'  => 'error',
+                    'message' => 'Session is already accepted'
+                ], 409);
             }
-            
-            // Verify agent belongs to this client
-            $agent = $this->agentModel->where('id', $agentId)
-                ->where('client_id', $clientId)
-                ->first();
-            
-            if (!$agent) {
-                return $this->jsonResponse([
-                    'status' => 'error',
-                    'message' => 'Agent not found or does not belong to this client'
-                ], 404);
+
+            // Decide who accepts
+            $acceptedByType = null;
+            $acceptedById   = null;
+            $acceptedByName = null;
+            $agentAssignId  = null;
+
+            if ($currentAgentId) {
+                // Agent accepts
+                $agent = $this->agentModel
+                    ->where('id', $currentAgentId)
+                    ->where('client_id', $clientId)
+                    ->first();
+
+                if (!$agent) {
+                    return $this->jsonResponse([
+                        'status'  => 'error',
+                        'message' => 'Agent not found or access denied'
+                    ], 403);
+                }
+
+                $acceptedByType = 'agent';
+                $acceptedById   = $currentAgentId;
+                $acceptedByName = $agent['username'];
+                $agentAssignId  = $currentAgentId;
+
+            } else {
+                // Client accepts (fallback flow)
+                if (!$clientId) {
+                    return $this->jsonResponse([
+                        'status'  => 'error',
+                        'message' => 'Unauthorized client user'
+                    ], 401);
+                }
+
+                $clientUser = $this->clientModel
+                    ->where('id', $clientId)
+                    ->first();
+
+                if (!$clientUser) {
+                    return $this->jsonResponse([
+                        'status'  => 'error',
+                        'message' => 'Client user not found'
+                    ], 403);
+                }
+
+                $acceptedByType = 'client';
+                $acceptedById   = $clientId;
+                $acceptedByName = $clientUser['username'];
             }
-            
-            // Assign the agent
-            $updated = $this->chatModel->where('session_id', $sessionId)
+
+            // Accept session (race-safe)
+            $updated = $this->chatModel
+                ->where('session_id', $sessionId)
+                ->where('status', 'waiting')
                 ->set([
-                    'agent_id' => $agentId,
-                    'status' => 'active',
-                    'accepted_at' => date('Y-m-d H:i:s'),
-                    // 'accepted_by' => $agentId
-                    'accepted_by' => $agent['username']
+                    'agent_id'              => $agentAssignId, // null if client accepted
+                    'status'                => 'active',
+                    'accepted_at'           => date('Y-m-d H:i:s'),
+                    'accepted_by'           => $acceptedByName,
+                    'accepted_by_user_type' => $acceptedByType,
+                    'accepted_by_user_id'   => $acceptedById,
+                    'updated_at'            => date('Y-m-d H:i:s'),
                 ])
                 ->update();
             
             if ($updated) {
                 return $this->jsonResponse([
-                    'status' => 'success',
-                    'message' => 'Customer successfully assigned to agent',
-                    'data' => [
-                        'session_id' => $sessionId,
-                        'agent_id' => $agentId,
-                        'agent_name' => $agent['username']
+                    'status'  => 'success',
+                    'message' => 'Chat session accepted successfully',
+                    'data'    => [
+                        'session_id'       => $sessionId,
+                        'accepted_by_type' => $acceptedByType,
+                        'accepted_by_id'   => $acceptedById,
+                        'accepted_by_name' => $acceptedByName,
+                        'agent_id'         => $agentAssignId,
                     ]
                 ], 200);
             } else {
-                return $this->jsonResponse([
-                    'status' => 'error',
-                    'message' => 'Failed to assign agent'
-                ], 500);
+                return $this->errorResponse('Failed to assign agent', null, 500);
             }
-            
+
         } catch (\Exception $e) {
-            log_message('error', 'Queue assign error: ' . $e->getMessage());
-            return $this->jsonResponse([
-                'status' => 'error',
-                'message' => 'Failed to assign agent',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Failed to assign agent', $e, 500);
         }
     }
     
@@ -383,28 +415,16 @@ class QueueController extends BaseController
                 ->update();
             
             if ($updated) {
-                return $this->jsonResponse([
-                    'status' => 'success',
-                    'message' => 'Queue priority updated successfully',
-                    'data' => [
-                        'session_id' => $sessionId,
-                        'priority' => $priority
-                    ]
-                ], 200);
+                return $this->successResponse([
+                    'session_id' => $sessionId,
+                    'priority' => $priority
+                ], 'Queue priority updated successfully');
             } else {
-                return $this->jsonResponse([
-                    'status' => 'error',
-                    'message' => 'Failed to update priority'
-                ], 500);
+                return $this->errorResponse('Failed to update priority', null, 500);
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Queue priority error: ' . $e->getMessage());
-            return $this->jsonResponse([
-                'status' => 'error',
-                'message' => 'Failed to update priority',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Failed to update priority', $e, 500);
         }
     }
     
@@ -460,27 +480,15 @@ class QueueController extends BaseController
                 ->update();
             
             if ($updated) {
-                return $this->jsonResponse([
-                    'status' => 'success',
-                    'message' => 'Customer removed from queue successfully',
-                    'data' => [
-                        'session_id' => $sessionId
-                    ]
-                ], 200);
+                return $this->successResponse([
+                    'session_id' => $sessionId
+                ], 'Customer removed from queue successfully');
             } else {
-                return $this->jsonResponse([
-                    'status' => 'error',
-                    'message' => 'Failed to remove from queue'
-                ], 500);
+                return $this->errorResponse('Failed to remove from queue', null, 500);
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Queue remove error: ' . $e->getMessage());
-            return $this->jsonResponse([
-                'status' => 'error',
-                'message' => 'Failed to remove from queue',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Failed to remove from queue', $e, 500);
         }
     }
     
@@ -552,30 +560,18 @@ class QueueController extends BaseController
                 ->update();
             
             if ($updated) {
-                return $this->jsonResponse([
-                    'status' => 'success',
-                    'message' => 'Customer transferred successfully',
-                    'data' => [
-                        'session_id' => $sessionId,
-                        'old_agent_id' => $oldAgentId,
-                        'new_agent_id' => $newAgentId,
-                        'new_agent_name' => $newAgent['username']
-                    ]
-                ], 200);
+                return $this->successResponse([
+                    'session_id' => $sessionId,
+                    'old_agent_id' => $oldAgentId,
+                    'new_agent_id' => $newAgentId,
+                    'new_agent_name' => $newAgent['username']
+                ], 'Customer transferred successfully');
             } else {
-                return $this->jsonResponse([
-                    'status' => 'error',
-                    'message' => 'Failed to transfer customer'
-                ], 500);
+                return $this->errorResponse('Failed to transfer customer', null, 500);
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Queue transfer error: ' . $e->getMessage());
-            return $this->jsonResponse([
-                'status' => 'error',
-                'message' => 'Failed to transfer customer',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Failed to transfer customer', $e, 500);
         }
     }
     
@@ -624,42 +620,75 @@ class QueueController extends BaseController
             
             // Get last few messages from MongoDB
             $messages = $this->getRecentMessages($sessionId, 10);
+
+            // Latest message (newest)
+            $latestMessage = !empty($messages) ? end($messages) : null;
+
+            $lastReplyBy = $latestMessage['sender_type'] ?? null;
+            $lastReplyAt = $latestMessage['created_at'] ?? null;
             
             // Get customer history (previous sessions if logged user)
             $customerHistory = [];
             if ($session['external_username'] || $session['external_system_id']) {
                 $customerHistory = $this->getCustomerHistory($session, $clientId);
             }
+
+            $createdAt = strtotime($session['created_at']);
+
+            if ($session['status'] === 'closed' && !empty($session['updated_at'])) {
+                $endedAt = strtotime($session['updated_at']);
+            } else {
+                $endedAt = time();
+            }
+
+            $sessionDurationSeconds = max(0, $endedAt - $createdAt);
+
+            $totalMessages = $this->getTotalMessages($sessionId);
+
+            $technicalInfo = null;
+
+            if (!empty($session['technical_info'])) {
+                $technicalInfo = json_decode($session['technical_info'], true);
+            }
             
             return $this->jsonResponse([
                 'status' => 'success',
                 'data' => [
-                    'session_id' => $sessionId,
-                    'customer_name' => $customerName,
-                    'customer_email' => $session['customer_email'] ?? null,
-                    'customer_phone' => $session['customer_phone'] ?? null,
-                    'chat_topic' => $session['chat_topic'] ?? null,
-                    'user_role' => $session['user_role'] ?? 'anonymous',
-                    'external_username' => $session['external_username'] ?? null,
-                    'external_fullname' => $session['external_fullname'] ?? null,
-                    'external_system_id' => $session['external_system_id'] ?? null,
-                    'status' => $session['status'],
-                    'created_at' => $session['created_at'],
-                    'wait_time_seconds' => $waitTimeSeconds,
+                    'session_id'          => $sessionId,
+                    'customer_name'       => $customerName,
+                    'customer_email'      => $session['customer_email'] ?? null,
+                    'customer_phone'      => $session['customer_phone'] ?? null,
+                    'chat_topic'          => $session['chat_topic'] ?? null,
+                    'user_role'           => $session['user_role'] ?? 'anonymous',
+                    'external_username'   => $session['external_username'] ?? null,
+                    'external_fullname'   => $session['external_fullname'] ?? null,
+                    'external_system_id'  => $session['external_system_id'] ?? null,
+                    'status'              => $session['status'],
+                    'technical_info'      => $technicalInfo,
+                    'user_id'             => $session['accepted_by_user_id'],
+                    'user_type'           => $session['accepted_by_user_type'],
+                    'user_name'           => $session['accepted_by'],
+                    'created_at'          => $session['created_at'],
+                    'started_at'          => $session['created_at'] ?? null,
+                    'accepted_at'         => $session['accepted_at'] ?? null,
+                    'last_reply_by'       => $lastReplyBy,
+                    'last_reply_at'       => $lastReplyAt,
+                    'session_duration'    => [
+                             'seconds'    => $sessionDurationSeconds,
+                             'minutes'    => floor($sessionDurationSeconds / 60),
+                             'formatted'  => $this->formatWaitTime($sessionDurationSeconds)
+                    ],
+                    'total_messages'      => $totalMessages,
+                    'wait_time_seconds'   => $waitTimeSeconds,
                     'wait_time_formatted' => $this->formatWaitTime($waitTimeSeconds),
-                    'recent_messages' => $messages,
-                    'customer_history' => $customerHistory,
-                    'queue_priority' => $session['queue_priority'] ?? null
+                    'recent_messages'     => $messages,
+                    'customer_history'    => $customerHistory,
+                    'queue_priority'      => $session['queue_priority'] ?? null
                 ]
             ], 200);
             
         } catch (\Exception $e) {
-            log_message('error', 'Queue customer details error: ' . $e->getMessage());
-            return $this->jsonResponse([
-                'status' => 'error',
-                'message' => 'Failed to fetch customer details',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse('Failed to fetch customer details', $e, 500);
         }
     }
     
@@ -700,12 +729,27 @@ class QueueController extends BaseController
                 ];
             }
         } catch (\Exception $e) {
-            log_message('error', 'Failed to fetch last message: ' . $e->getMessage());
+            \log_message('error', 'Failed to fetch last message: ' . $e->getMessage());
         }
         
         return null;
     }
-    
+    private function getMessageStats($sessionId): array
+    {
+        try {
+            $mongoModel = new \App\Models\MongoMessageCWModel();
+            return $mongoModel->getSessionMessageStats($sessionId);
+        } catch (\Throwable $e) {
+            log_message('error', 'Failed to fetch message stats: ' . $e->getMessage());
+        }
+
+        return [
+            'unread_count' => 0,
+            'is_read' => true,
+            'last_message_count' => 0
+        ];
+    }
+
     /**
      * Helper: Get recent messages from MongoDB
      */
@@ -715,7 +759,7 @@ class QueueController extends BaseController
             $mongoModel = new \App\Models\MongoMessageCWModel();
             return $mongoModel->getRecentMessages($sessionId, $limit);
         } catch (\Exception $e) {
-            log_message('error', 'Failed to fetch recent messages: ' . $e->getMessage());
+            \log_message('error', 'Failed to fetch recent messages: ' . $e->getMessage());
             return [];
         }
     }
@@ -754,7 +798,7 @@ class QueueController extends BaseController
             
             return $result;
         } catch (\Exception $e) {
-            log_message('error', 'Failed to fetch customer history: ' . $e->getMessage());
+            \log_message('error', 'Failed to fetch customer history: ' . $e->getMessage());
             return [];
         }
     }
@@ -774,6 +818,16 @@ class QueueController extends BaseController
             $hours = floor($seconds / 3600);
             $minutes = floor(($seconds % 3600) / 60);
             return $hours . ' hour' . ($hours > 1 ? 's' : '') . ($minutes > 0 ? ' ' . $minutes . ' min' : '');
+        }
+    }
+
+    private function getTotalMessages($sessionId)
+    {
+        try {
+            $mongoModel = new \App\Models\MongoMessageCWModel();
+            return $mongoModel->countSessionMessages($sessionId);
+        } catch (\Exception $e) {
+            return 0;
         }
     }
 }

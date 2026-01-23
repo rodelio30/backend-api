@@ -32,7 +32,7 @@ class MongoMessageCWModel
         try {
             
             $connectionString = sprintf(
-                'mongodb://%s:%s@%s:%d/%s/?authSource=admin',
+                'mongodb://%s:%s@%s:%d/%s?authSource=admin',
                 $this->databaseConfig['username'],
                 $this->databaseConfig['password'],
                 $this->databaseConfig['hostname'],
@@ -75,7 +75,7 @@ class MongoMessageCWModel
                         $this->databaseConfig['hostname'],
                         $this->databaseConfig['port'],
                         $this->databaseConfig['database'],
-                        $this->databaseConfig['authSource'] ?? $this->databaseConfig['database']
+                        $this->databaseConfig['database']
                     );
                     
                     $this->client = new Client($connectionStringWithDbAuth, $this->databaseConfig['options'] ?? []);
@@ -589,6 +589,7 @@ class MongoMessageCWModel
             return null;
         }
     }
+    
     /**
      * Get last message info for a session (used for queue preview)
      */
@@ -683,5 +684,87 @@ class MongoMessageCWModel
             error_log('Failed to get recent messages: ' . $e->getMessage());
             return [];
         }
+    }
+    /**
+     * Count: Counting messages in a session
+     */
+    public function countSessionMessages($sessionId)
+    {
+        try {
+            $chatCWModel = new \App\Models\ChatCWModel();
+            $session = $chatCWModel->getSessionBySessionId($sessionId);
+
+            if (!$session) {
+                return 0;
+            }
+
+            $clientUsername = $this->extractClientUsernameFromSession($session);
+            $collectionName = $this->getCollectionName($clientUsername);
+            $collection = $this->database->selectCollection($collectionName);
+
+            return $collection->countDocuments([
+                'session_id' => $sessionId
+            ]);
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    public function getSessionMessageStats(string $sessionId): array
+    {
+        try {
+            $chatCWModel = new \App\Models\ChatCWModel();
+            $session = $chatCWModel->getSessionBySessionId($sessionId);
+
+            if (!$session) {
+                return 0;
+            }
+
+            $clientUsername = $this->extractClientUsernameFromSession($session);
+            $collectionName = $this->getCollectionName($clientUsername);
+            $collection = $this->database->selectCollection($collectionName);
+
+
+            // Last message
+            $lastMessage = $collection->findOne(
+                ['session_id' => $sessionId],
+                [
+                    'sort' => ['created_at' => -1],
+                    'projection' => [
+                        'is_read' => 1
+                    ]
+                ]
+            );
+
+            // Convert BSONDocument → array
+            $lastMessageArray = $lastMessage ? $lastMessage->getArrayCopy() : [];
+
+            // Unread count (customer messages only)
+            $unreadCount = $collection->countDocuments([
+                'session_id' => $sessionId,
+                'is_read' => false,
+                'sender_type' => 'customer'
+            ]);
+
+            // Total messages
+            $totalCount = $collection->countDocuments([
+                'session_id' => $sessionId
+            ]);
+
+            return [
+                'unread_count' => (int) $unreadCount,
+                'is_read' => $lastMessageArray['is_read'] ?? true,
+                'last_message_count' => (int) $totalCount
+            ];
+
+        } catch (\Throwable $e) {
+            log_message('error', 'Mongo stats error: ' . $e->getMessage());
+        }
+
+        return [
+            'unread_count' => 0,
+            'is_read' => true,
+            'last_message_count' => 0
+        ];
     }
 }

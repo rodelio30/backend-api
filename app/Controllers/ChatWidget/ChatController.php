@@ -10,7 +10,6 @@ use Exception;
 // class ChatController extends GeneralCW
 class ChatController extends GeneralCW
 {
-    // protected $format = 'json';
     protected ApiKeyCWModel $apiKeyCWModel;
     protected ClientWidgetSettingCWModel $clientWidgetSettingCWModel;
     protected array $behaviorDefaults = [
@@ -24,7 +23,6 @@ class ChatController extends GeneralCW
     {
         $this->apiKeyCWModel = new ApiKeyCWModel();
         $this->clientWidgetSettingCWModel = new ClientWidgetSettingCWModel();
-        helper('jwt');
     }
 
 
@@ -823,9 +821,18 @@ class ChatController extends GeneralCW
             return $this->jsonResponse(['error' => 'Unauthorized'], 401);
         }
 
-        $agents = $this->userCWModel->select('id, username, current_chats, max_concurrent_chats, status, is_online')
-                                 ->whereIn('role', ['admin', 'support'])
-                                 ->findAll();
+        // Get client_id from authenticated user
+        $clientId = $this->session->get('client_id');
+        
+        if (!$clientId) {
+            return $this->jsonResponse(['error' => 'Client ID not found'], 400);
+        }
+
+        // Query agents table for the current client's agents
+        $agents = $this->agentModel->select('id, username, email, full_name, current_chats, max_concurrent_chats, agent_status, is_online')
+                                   ->where('client_id', $clientId)
+                                   ->where('status', 'active')
+                                   ->findAll();
 
         return $this->jsonResponse($agents);
     }
@@ -1310,6 +1317,7 @@ class ChatController extends GeneralCW
 
         return $merged;
     }
+
     // Full Implementation of API Endpoints for Chat Widget
     // Get authenticated client ID from API token
     private function getAuthenticatedClientId(): ?int
@@ -1338,6 +1346,63 @@ class ChatController extends GeneralCW
             ->where('client_id', $clientId)
             ->orderBy('created_at', 'DESC')
             ->findAll();
+        
+        foreach ($sessions as &$session) {
+            /**
+             * Decode technical_info
+             */
+            if (!empty($session['technical_info'])) {
+                $decoded = json_decode($session['technical_info'], true);
+                $session['technical_info'] = json_last_error() === JSON_ERROR_NONE ? $decoded : null;
+            } else {
+                $session['technical_info'] = null;
+            }
+
+            /**
+             * Get recent messages (1 is enough to determine last reply)
+             */
+            $recentMessages = $mongoModel->getRecentMessages($session['session_id'], 1);
+            $latestMessage  = !empty($recentMessages) ? end($recentMessages) : null;
+
+            $lastReplyBy = null;
+            $lastReplyAt = null;
+
+            if ($latestMessage) {
+                $lastReplyBy = $latestMessage['sender_type'] ?? null;
+                $lastReplyAt = $latestMessage['created_at'] ?? null;
+            }
+
+            /**
+             * Session duration
+             */
+            $createdAt = strtotime($session['created_at']);
+
+            if ($session['status'] === 'closed' && !empty($session['updated_at'])) {
+                $endedAt = strtotime($session['updated_at']);
+            } else {
+                $endedAt = time();
+            }
+
+            $sessionDurationSeconds = max(0, $endedAt - $createdAt);
+
+            /**
+             * Total messages
+             */
+            $totalMessages = $mongoModel->countSessionMessages($session['session_id']);
+
+            /**
+             * Append computed fields
+             */
+            $session['last_reply_by']  = $lastReplyBy;
+            $session['last_reply_at']  = $lastReplyAt;
+            $session['session_duration'] = [
+                'seconds'   => $sessionDurationSeconds,
+                'minutes'   => floor($sessionDurationSeconds / 60),
+                'formatted' => $this->formatWaitTime($sessionDurationSeconds)
+            ];
+            $session['total_messages'] = $totalMessages;
+        }
+        unset($session);
 
         return $this->respond([
             'status' => 'success',
@@ -1348,9 +1413,10 @@ class ChatController extends GeneralCW
     // Send Message (API - Authenticated)
     public function apiSendMessage()
     {
-        $clientId = $this->getAuthenticatedClientId();
+        $clientId       = $this->getAuthenticatedClientId();
+        $clientUsername = $this->getTokenUserName();
 
-        if (!$clientId) {
+        if (!$clientId || !$clientUsername) {
             return $this->response->setStatusCode(401)->setJSON([
                 'status' => 'error',
                 'message' => 'Unauthorized'
@@ -1398,7 +1464,8 @@ class ChatController extends GeneralCW
             'message'        => $message,
             'message_type'   => $messageType,
             'created_at'     => date('Y-m-d H:i:s'),
-            'updated_at'     => date('Y-m-d H:i:s')
+            'updated_at'     => date('Y-m-d H:i:s'),
+            'client_username' => $clientUsername
         ]);
 
         if (!$messageId) {
@@ -1560,6 +1627,7 @@ class ChatController extends GeneralCW
         $customerName = !empty($data['customer_name']) ? $this->sanitizeInput($data['customer_name']) : 'Anonymous';
         $topic = $this->sanitizeInput($data['chat_topic'] ?? null);
         $email = $this->sanitizeInput($data['customer_email'] ?? null);
+        $apiKey = $this->sanitizeInput($data['api_key'] ?? null);
 
         $sessionId = $this->generateSessionId();
 
@@ -1570,6 +1638,7 @@ class ChatController extends GeneralCW
             'customer_fullname' => $customerName,
             'chat_topic'        => $topic,
             'user_role'         => 'anonymous',
+            'api_key'           => $apiKey,
             'status'            => 'waiting'
         ];
 
@@ -1722,6 +1791,7 @@ class ChatController extends GeneralCW
             'customer_fullname' => $customerName,
             'chat_topic'        => $topic,
             'customer_email'    => $email,
+            'api_key'           => $apiKey,
             'user_role'         => 'anonymous',
             'status'            => 'waiting'
         ]);
@@ -1733,5 +1803,42 @@ class ChatController extends GeneralCW
             'status'     => 'success',
             'session_id' => $sessionId
         ]);
+    }
+
+    /**
+     * Helper: Get last message from MongoDB
+     */
+    private function getLastMessage($sessionId)
+    {
+        try {
+            $mongoModel = new \App\Models\MongoMessageCWModel();
+            $lastMessageInfo = $mongoModel->getLastMessageInfo($sessionId);
+            
+            if ($lastMessageInfo) {
+                return [
+                    'content' => $lastMessageInfo['content'] ?? '',
+                    'sender_type' => $lastMessageInfo['sender_type'] ?? '',
+                    'sent_at' => $lastMessageInfo['sent_at'] ?? null
+                ];
+            }
+        } catch (\Exception $e) {
+            \log_message('error', 'Failed to fetch last message: ' . $e->getMessage());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Helper: Get recent messages from MongoDB
+     */
+    private function getRecentMessages($sessionId, $limit = 10)
+    {
+        try {
+            $mongoModel = new \App\Models\MongoMessageCWModel();
+            return $mongoModel->getRecentMessages($sessionId, $limit);
+        } catch (\Exception $e) {
+            \log_message('error', 'Failed to fetch recent messages: ' . $e->getMessage());
+            return [];
+        }
     }
 }

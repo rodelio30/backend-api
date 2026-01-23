@@ -10,7 +10,7 @@ class ChatModel extends Model
     protected $allowedFields = [
         'client_id', 'session_id', 'customer_name', 'customer_fullname', 'chat_topic', 'customer_email', 'customer_phone',
         'user_role', 'external_username', 'external_fullname', 'external_system_id', 
-        'agent_id', 'status', 'closed_at', 'api_key', 'accepted_at', 'accepted_by'
+        'agent_id', 'status', 'closed_at', 'api_key', 'accepted_at', 'accepted_by', 'accepted_by_user_type', 'accepted_by_user_id'
     ];
     
     protected MongoMessageModel $mongoModel;

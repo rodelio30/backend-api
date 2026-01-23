@@ -34,7 +34,7 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
         // Get available languages for client
         $routes->get('locale', 'Clientzone\WidgetLanguageController::getLanguages');
 
-        // Save/update language phrases
+        // Save/update language phrases (Admin)
         $routes->post('save', 'Clientzone\WidgetLanguageController::saveLanguagePhrases');
     });
 
@@ -45,7 +45,7 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
         $routes->delete('(:num)', 'Clientzone\WidgetEyeCatcherController::delete/$1');
     });
 
-    $routes->group('availability', function ($routes) {
+        $routes->group('availability', function ($routes) {
         $routes->get('', 'Clientzone\WidgetAvailabilityController::index');
         $routes->post('', 'Clientzone\WidgetAvailabilityController::save');
     });
@@ -63,21 +63,9 @@ $routes->group('api/v1/clientzone/widget', ['filter' => 'jwtAuth'], function($ro
     });
 });
 
-$routes->group('api/v1/clientzone', ['filter' => 'jwtAuth'], function ($routes) {
+$routes->group('api/v1/clientzone/', ['filter' => 'jwtAuth'], function ($routes) {
     $routes->get('dashboard', 'Clientzone\ClientController::dashboard');
-
-
-    $routes->group('queue', function ($routes) {
-        $routes->get('', 'Clientzone\ChatsController::index');
-        $routes->post('(:segment)/accept', 'Clientzone\ChatsController::accept/$1');
-
-        $routes->get('(:segment)/messages', 'Clientzone\ChatsController::messages/$1');
-        $routes->post('(:segment)/messages', 'Clientzone\ChatsController::sendMessage/$1');
-
-        $routes->get('(:segment)', 'Clientzone\ChatsController::sessionDetails/$1');
-        $routes->post('(:segment)/close', 'Clientzone\ChatsController::close/$1');
-    });
-
+    
     // Queue Management Routes
     $routes->group('queue', function ($routes) {
         // Get queue list
@@ -101,8 +89,7 @@ $routes->group('api/v1/clientzone', ['filter' => 'jwtAuth'], function ($routes) 
         // Get customer details
         $routes->get('(:segment)/details', 'Clientzone\QueueController::getCustomerDetails/$1');
     });
-
-    // Canned Responses CRUD
+        // Canned Responses CRUD
     $routes->get('canned-responses-for-api-key', 'Clientzone\CannedResponseController::getCannedResponsesForApiKey');
     $routes->get('get-canned-response/(:segment)', 'Clientzone\CannedResponseController::getCannedResponse/$1');
     $routes->post('save-canned-response', 'Clientzone\CannedResponseController::saveCannedResponse');
@@ -114,6 +101,35 @@ $routes->group('api/v1/clientzone', ['filter' => 'jwtAuth'], function ($routes) 
             $routes->get('/', 'Clientzone\WidgetAvailabilityController::index');
             $routes->post('/', 'Clientzone\WidgetAvailabilityController::save');
         });
+    });
+
+    // Agent Management (Client only)
+    $routes->group('agents', function ($routes) {
+        $routes->get('', 'Clientzone\AgentsController::getAgents');
+        $routes->post('first', 'Clientzone\AgentsController::createFirstAgent');
+        $routes->post('create', 'Clientzone\AgentsController::createAgent');
+        $routes->post('update', 'Clientzone\AgentsController::updateAgent');
+        $routes->post('delete', 'Clientzone\AgentsController::deleteAgent');
+    });
+
+    $routes->group('forms/pre-chat', function ($routes) {
+        $routes->get('', 'Clientzone\PreChatFormController::getForm');
+
+        $routes->put('status', 'Clientzone\PreChatFormController::updateStatus');
+        $routes->put('campaign', 'Clientzone\PreChatFormController::updateCampaignVisibility');
+
+        $routes->post('elements', 'Clientzone\PreChatFormController::addElement');
+        $routes->put('elements', 'Clientzone\PreChatFormController::updateElement');
+        $routes->delete('elements', 'Clientzone\PreChatFormController::deleteElement');
+        $routes->put('elements/sort', 'Clientzone\PreChatFormController::sortElements');
+    });
+
+    // Keyword Responses routes (clients only)
+    $routes->group('keyword-response', function ($routes) {
+        $routes->get('', 'Clientzone\KeywordResponseController::keywordResponses');
+        $routes->get('get/(:segment)', 'Clientzone\KeywordResponseController::getKeywordResponse/$1');
+        $routes->post('save', 'Clientzone\KeywordResponseController::saveKeywordResponse');
+        $routes->post('delete', 'Clientzone\KeywordResponseController::deleteKeywordResponse');
     });
 });
 
@@ -146,6 +162,7 @@ $routes->group('api/v1/clientzone', function($routes) {
 
 $routes->get('test-mongo', 'TestMongoController::index');
 
+
 // Chat API routes (Clientzone - Authenticated)
 $routes->group('api/v1/clientzone/chat', ['filter' => 'jwtAuth'], function ($routes) {
     $routes->get('sessions', 'ChatWidget\ChatController::apiGetChatSessions');
@@ -155,16 +172,8 @@ $routes->group('api/v1/clientzone/chat', ['filter' => 'jwtAuth'], function ($rou
     $routes->get('agent-workload', 'ChatWidget\ChatController::apiGetAgentWorkload');
 });
 
-    // $routes->options('api/v1/clientzone/public/chat/start', function() {
-    //     header('Access-Control-Allow-Origin: *');
-    //     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    //     header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-    //     http_response_code(200);
-    //     exit();
-    // });
-
 // Public APIs
-$routes->group('api/v1/clientzone/public/chat', function ($routes) {
+$routes->group('api/v1/public/chat', function ($routes) {
     $routes->post('start', 'ChatWidget\ChatController::publicStartSession');
     $routes->post('send-message', 'ChatWidget\ChatController::publicSendMessage');
     $routes->get('messages/(:segment)', 'ChatWidget\ChatController::publicGetMessages/$1');
@@ -263,6 +272,5 @@ $routes->group('api', function($routes) {
     $routes->post('widget/validate', 'ChatWidget\WidgetAuthController::validateWidget');
     $routes->post('widget/validate-session', 'ChatWidget\WidgetAuthController::validateChatStart');
     $routes->post('widget/log-message', 'ChatWidget\WidgetAuthController::logMessageSent');
-
     $routes->get('widget/config', 'ChatWidget\WidgetConfigController::publicConfig');
 });
